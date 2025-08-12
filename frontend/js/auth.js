@@ -94,218 +94,122 @@ function updateUserInfo() {
     }
 }
 
+// Função para mostrar o sistema principal após login
+function showMainSystem() {
+    console.log('showMainSystem() chamada');
+    
+    const loginScreen = document.getElementById('loginScreen');
+    const mainSystem = document.getElementById('mainSystem');
+    
+    console.log('loginScreen:', loginScreen);
+    console.log('mainSystem:', mainSystem);
+    
+    if (loginScreen && mainSystem) {
+        console.log('Escondendo loginScreen e mostrando mainSystem');
+        loginScreen.classList.add('hidden');
+        mainSystem.classList.remove('hidden');
+        
+        // Forçar reflow para garantir que a transição funcione
+        mainSystem.offsetHeight;
+        
+        console.log('Transição concluída');
+    } else {
+        console.error('Elementos não encontrados:', { loginScreen, mainSystem });
+    }
+}
+
+// Função para fazer logout
+function logout() {
+    // Limpar dados de autenticação
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userInfo');
+    
+    // Mostrar tela de login
+    const loginScreen = document.getElementById('loginScreen');
+    const mainSystem = document.getElementById('mainSystem');
+    
+    if (loginScreen && mainSystem) {
+        mainSystem.classList.add('hidden');
+        loginScreen.classList.remove('hidden');
+    }
+    
+    // Limpar formulário
+    document.getElementById('loginForm').reset();
+    
+    showAlert('Logout realizado com sucesso!', 'info');
+}
+
+// Função para verificar se usuário está logado
+function checkAuthStatus() {
+    const token = localStorage.getItem('authToken');
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (token && userInfo) {
+        try {
+            authToken = token;
+            currentUser = JSON.parse(userInfo);
+            
+            // Verificar se o token ainda é válido fazendo uma requisição
+            apiRequest('/relatorios/dashboard')
+                .then(() => {
+                    console.log('Token válido, mostrando sistema');
+                    showMainSystem();
+                    updateUserInfo();
+                    loadDashboard();
+                })
+                .catch(() => {
+                    console.log('Token inválido, fazendo logout');
+                    logout();
+                });
+        } catch (error) {
+            console.error('Erro ao restaurar sessão:', error);
+            logout();
+        }
+    }
+}
+
 // Função para criar usuário administrador inicial
 async function createInitialAdmin() {
     try {
         console.log('Tentando criar admin em:', `${API_BASE_URL}/setup-admin`);
         
         const response = await fetch(`${API_BASE_URL}/setup-admin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            method: 'POST'
         });
         
-        if (response.ok) {
-            const result = await response.json();
-            console.log('Setup admin:', result.message);
-            return true;
-        } else {
-            console.error('Erro ao criar admin:', response.statusText);
-            return false;
-        }
+        const result = await response.json();
+        console.log('Resultado da criação do admin:', result);
+        
+        return result;
     } catch (error) {
         console.error('Erro ao criar admin:', error);
-        return false;
-    }
-}
-            email: 'admin@feperj.com',
-            nivel_acesso: 'admin'
-        };
-        
-        const response = await fetch(`${API_BASE_URL}/usuarios`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(adminUser)
-        });
-        
-        if (response.ok) {
-            console.log('Usuário administrador criado com sucesso');
-            return true;
-        } else {
-            const error = await response.json();
-            if (error.detail === 'Usuário já existe') {
-                console.log('Usuário administrador já existe');
-                return true;
-            }
-            throw new Error(error.detail);
-        }
-    } catch (error) {
-        console.error('Erro ao criar usuário administrador:', error);
-        return false;
+        return { message: 'Erro ao criar admin' };
     }
 }
 
-// Função para verificar se o usuário tem permissão
-function hasPermission(permission) {
-    if (!currentUser) return false;
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado, inicializando autenticação...');
     
-    // Se for admin, tem todas as permissões
-    if (currentUser.nivel_acesso === 'admin') return true;
+    // Verificar status de autenticação
+    checkAuthStatus();
     
-    // Verificar permissões específicas
-    switch (permission) {
-        case 'create_atleta':
-        case 'edit_atleta':
-        case 'delete_atleta':
-            return ['admin', 'coordenador'].includes(currentUser.nivel_acesso);
-        
-        case 'create_equipe':
-        case 'edit_equipe':
-        case 'delete_equipe':
-            return ['admin', 'coordenador'].includes(currentUser.nivel_acesso);
-        
-        case 'create_competicao':
-        case 'edit_competicao':
-        case 'delete_competicao':
-            return ['admin'].includes(currentUser.nivel_acesso);
-        
-        case 'create_inscricao':
-        case 'edit_inscricao':
-        case 'delete_inscricao':
-            return ['admin', 'coordenador', 'usuario'].includes(currentUser.nivel_acesso);
-        
-        case 'view_reports':
-            return ['admin', 'coordenador'].includes(currentUser.nivel_acesso);
-        
-        default:
-            return false;
-    }
-}
-
-// Função para mostrar/esconder elementos baseado em permissões
-function updateUIByPermissions() {
-    // Botões de criação
-    const createButtons = [
-        { id: 'addAtletaBtn', permission: 'create_atleta' },
-        { id: 'addEquipeBtn', permission: 'create_equipe' },
-        { id: 'addCompeticaoBtn', permission: 'create_competicao' },
-        { id: 'addInscricaoBtn', permission: 'create_inscricao' }
-    ];
+    // Criar admin inicial se necessário
+    createInitialAdmin();
     
-    createButtons.forEach(button => {
-        const element = document.getElementById(button.id);
-        if (element) {
-            if (hasPermission(button.permission)) {
-                element.style.display = '';
-            } else {
-                element.style.display = 'none';
-            }
-        }
-    });
-    
-    // Seção de relatórios
-    const relatoriosSection = document.querySelector('[data-section="relatorios"]');
-    if (relatoriosSection) {
-        if (hasPermission('view_reports')) {
-            relatoriosSection.style.display = '';
-        } else {
-            relatoriosSection.style.display = 'none';
-        }
-    }
-}
-
-// Função para obter informações do usuário atual
-function getCurrentUser() {
-    return currentUser;
-}
-
-// Função para verificar se o token ainda é válido
-async function validateToken() {
-    if (!authToken) return false;
-    
-    try {
-        const response = await apiRequest('/relatorios/dashboard');
-        return true;
-    } catch (error) {
-        if (error.message.includes('Sessão expirada')) {
-            logout();
-            return false;
-        }
-        return true;
-    }
-}
-
-// Função para renovar token
-async function refreshToken() {
-    // Implementar renovação de token se necessário
-    // Por enquanto, apenas retorna o token atual
-    return authToken;
-}
-
-// Event listener para verificar token periodicamente
-setInterval(async () => {
-    if (isAuthenticated()) {
-        const isValid = await validateToken();
-        if (!isValid) {
-            showAlert('Sua sessão expirou. Faça login novamente.', 'warning');
-        }
-    }
-}, 5 * 60 * 1000); // Verificar a cada 5 minutos
-
-// Função para limpar dados de autenticação
-function clearAuthData() {
-    authToken = null;
-    currentUser = null;
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
-}
-
-
-
-// Inicializar autenticação quando a página carregar
-document.addEventListener('DOMContentLoaded', async function() {
-    // Tentar criar usuário administrador inicial
-    try {
-        await createInitialAdmin();
-    } catch (error) {
-        console.error('Erro ao criar admin inicial:', error);
-    }
-    
-    // Event listener para o formulário de login
+    // Event listener para formulário de login
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
     
-    // Verificar se há token salvo
-    const savedToken = localStorage.getItem('authToken');
-    const savedUser = localStorage.getItem('userInfo');
-    
-    if (savedToken && savedUser) {
-        try {
-            authToken = savedToken;
-            currentUser = JSON.parse(savedUser);
-            
-            // Validar token
-            const isValid = await validateToken();
-            if (isValid) {
-                showMainSystem();
-                updateUserInfo();
-                updateUIByPermissions();
-                loadDashboard();
-            } else {
-                clearAuthData();
-                showLoginScreen();
-            }
-        } catch (error) {
-            console.error('Erro ao restaurar sessão:', error);
-            clearAuthData();
-            showLoginScreen();
-        }
-    } else {
-        showLoginScreen();
+    // Event listener para logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
     }
+    
+    console.log('Autenticação inicializada');
 });

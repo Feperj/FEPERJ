@@ -142,24 +142,7 @@ function isAuthenticated() {
     return !!authToken;
 }
 
-function logout() {
-    authToken = null;
-    currentUser = null;
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
-    
-    showLoginScreen();
-}
-
-function showLoginScreen() {
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('mainSystem').classList.add('hidden');
-}
-
-function showMainSystem() {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('mainSystem').classList.remove('hidden');
-}
+// Função showMainSystem movida para auth.js para evitar conflitos
 
 // Funções de formatação
 function formatDate(dateString) {
