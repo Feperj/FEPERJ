@@ -48,16 +48,24 @@ async function handleLogin(event) {
         authToken = data.access_token;
         currentUser = data.usuario;
         
+        console.log('Token salvo:', authToken);
+        console.log('Usuário salvo:', currentUser);
+        
         localStorage.setItem('authToken', authToken);
         localStorage.setItem('userInfo', JSON.stringify(currentUser));
         
+        console.log('Dados salvos no localStorage');
+        
         // Mostrar sistema principal
+        console.log('Chamando showMainSystem()...');
         showMainSystem();
         
         // Atualizar informações do usuário no header
+        console.log('Chamando updateUserInfo()...');
         updateUserInfo();
         
         // Carregar dashboard
+        console.log('Chamando loadDashboard()...');
         loadDashboard();
         
         showAlert('Login realizado com sucesso!', 'success');

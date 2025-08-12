@@ -443,6 +443,10 @@ async def root():
 async def teste():
     return FileResponse("teste_api.html")
 
+@app.get("/debug")
+async def debug():
+    return FileResponse("debug_login.html")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
