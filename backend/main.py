@@ -439,6 +439,30 @@ app.mount("/static", StaticFiles(directory="frontend"), name="static")
 async def root():
     return FileResponse("frontend/index.html")
 
+@app.get("/auth")
+async def auth_page():
+    return FileResponse("frontend/auth.html")
+
+@app.get("/dashboard")
+async def dashboard_page():
+    return FileResponse("frontend/dashboard.html")
+
+@app.get("/atletas")
+async def atletas_page():
+    return FileResponse("frontend/atletas.html")
+
+@app.get("/equipes")
+async def equipes_page():
+    return FileResponse("frontend/equipes.html")
+
+@app.get("/competicoes")
+async def competicoes_page():
+    return FileResponse("frontend/competicoes.html")
+
+@app.get("/inscricoes")
+async def inscricoes_page():
+    return FileResponse("frontend/inscricoes.html")
+
 @app.get("/teste")
 async def teste():
     return FileResponse("teste_api.html")

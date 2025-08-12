@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FEPERJ - Sistema de Gestão de Atletas</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            text-align: center;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin: 0;
+            opacity: 0.9;
+            font-weight: bold;
+        }
+        
+        p {
+            font-size: 16px;
+            margin: 0;
+            opacity: 0.7;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="logo">🏋️</div>
+        <h1>FEPERJ</h1>
+        <p>Sistema de Gestão de Atletas</p>
+        <div class="spinner"></div>
+        <p>Carregando sistema...</p>
+    </div>
+
+    <script>
+        // Verificar se já está logado
+        function verificarLogin() {
+            const loginTime = localStorage.getItem('loginTime');
+            const username = localStorage.getItem('username');
+            const token = localStorage.getItem('token');
+            
+            if (loginTime && username && token) {
+                const now = new Date().getTime();
+                const loginTimeStamp = parseInt(loginTime);
+                const hoursDiff = (now - loginTimeStamp) / (1000 * 60 * 60);
+                
+                // Sessão expira após 24 horas
+                if (hoursDiff < 24) {
+                    // Usuário logado, redirecionar para o sistema
+                    window.location.href = 'dashboard.html';
+                } else {
+                    // Login expirado, limpar dados e redirecionar para login
+                    localStorage.removeItem('loginTime');
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userType');
+                    window.location.href = 'login.html';
+                }
+            } else {
+                // Não logado, redirecionar para login
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Executar verificação após um pequeno delay
+        setTimeout(verificarLogin, 2000);
+    </script>
+</body>
+</html>
