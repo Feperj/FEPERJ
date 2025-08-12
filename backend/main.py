@@ -68,28 +68,30 @@ class Atleta(BaseModel):
 
 class Equipe(BaseModel):
     nome: str
-    cidade: str
-    estado: str
+    responsavel: str
     telefone: Optional[str] = None
     email: Optional[str] = None
-    responsavel: Optional[str] = None
+    endereco: Optional[str] = None
+    observacoes: Optional[str] = None
+    status: str = "ATIVA"
 
 class Competicao(BaseModel):
     nome: str
-    data_inicio: str
-    data_fim: str
+    data: str
     local: str
     descricao: Optional[str] = None
-    valor_inscricao: float
-    permite_dobra: bool = False
-    periodo_inscricao_inicio: str
-    periodo_inscricao_fim: str
+    valor_inscricao: Optional[float] = None
+    data_limite_inscricao: Optional[str] = None
+    observacoes: Optional[str] = None
+    status: str = "ABERTA"
 
 class Inscricao(BaseModel):
     atleta_id: str
     competicao_id: str
-    categorias: List[str]
-    valor_pago: float
+    categoria: Optional[str] = None
+    peso: Optional[float] = None
+    valor_pago: Optional[float] = None
+    observacoes: Optional[str] = None
     status: str = "CONFIRMADA"
 
 # Funções de autenticação
@@ -465,15 +467,15 @@ async def inscricoes_page():
 
 @app.get("/teste")
 async def teste():
-    return FileResponse("teste_api.html")
+    return FileResponse("frontend/teste_api.html")
 
 @app.get("/debug")
 async def debug():
-    return FileResponse("debug_login.html")
+    return FileResponse("frontend/debug_login.html")
 
 @app.get("/sistema")
 async def sistema():
-    return FileResponse("teste_sistema.html")
+    return FileResponse("frontend/teste_sistema.html")
 
 if __name__ == "__main__":
     import uvicorn
