@@ -1,216 +1,202 @@
-# Sistema FEPERJ - Versão Web
+# Sistema FEPERJ - Federação de Powerlifting do Estado do Rio de Janeiro
 
-Sistema de gestão para a Federação de Powerlifting do Estado do Rio de Janeiro (FEPERJ) desenvolvido em HTML, JavaScript e FastAPI.
+Sistema web completo para gestão de atletas, equipes, competições e inscrições da FEPERJ.
 
-## 🚀 Funcionalidades
+## 🚀 Tecnologias
 
-- **Gestão de Atletas**: Cadastro, edição, visualização e exclusão de atletas
-- **Gestão de Equipes**: Criação e gerenciamento de equipes
-- **Gestão de Competições**: Organização de competições com períodos de inscrição
-- **Gestão de Inscrições**: Controle de inscrições em competições
-- **Dashboard**: Relatórios e estatísticas em tempo real
-- **Autenticação**: Sistema de login seguro com JWT
-- **Relatórios**: Exportação de dados em CSV
-- **Interface Responsiva**: Funciona em desktop e mobile
+- **Backend**: Node.js + Express
+- **Banco de Dados**: MongoDB Atlas
+- **Frontend**: HTML + JavaScript (Vanilla)
+- **Autenticação**: JWT (JSON Web Tokens)
+- **Estilização**: Tailwind CSS
+- **Gráficos**: Chart.js
+- **Deploy**: Vercel
 
-## 🛠️ Tecnologias Utilizadas
+## 📋 Funcionalidades
 
-### Backend
-- **FastAPI**: Framework Python para API REST
-- **MongoDB**: Banco de dados NoSQL
-- **PyMongo**: Driver Python para MongoDB
-- **Pydantic**: Validação de dados
-- **JWT**: Autenticação segura
-- **Passlib**: Hash de senhas
+### 🔐 Autenticação
+- Login seguro com JWT
+- Sessão persistente (24 horas)
+- Logout automático
 
-### Frontend
-- **HTML5**: Estrutura da aplicação
-- **JavaScript (Vanilla)**: Lógica da aplicação
-- **Tailwind CSS**: Framework CSS para estilização
-- **Chart.js**: Gráficos e visualizações
-- **Font Awesome**: Ícones
+### 📊 Dashboard
+- Estatísticas em tempo real
+- Gráficos interativos
+- Visão geral do sistema
 
-## 📋 Pré-requisitos
+### 👥 Gestão de Atletas
+- Cadastro completo de atletas
+- Busca e filtros
+- Edição e exclusão
+- Geração automática de matrícula
 
-- Python 3.8+
-- Node.js (opcional, para desenvolvimento)
-- MongoDB Atlas (já configurado)
+### 🛡️ Gestão de Equipes
+- Cadastro de equipes
+- Contagem de atletas por equipe
+- Informações de contato
 
-## 🔧 Instalação
+### 🏆 Gestão de Competições
+- Cadastro de competições
+- Controle de inscrições
+- Status de competições
 
-### 1. Clone o repositório
+### 📝 Gestão de Inscrições
+- Inscrição de atletas em competições
+- Controle de categorias
+- Relatórios de inscrições
+
+## 🔧 Instalação Local
+
+### Pré-requisitos
+- Node.js 16+ 
+- npm ou yarn
+
+### Passos
+
+1. **Clone o repositório**
 ```bash
-git clone <url-do-repositorio>
-cd feperj-web
+git clone https://github.com/RJSeERMJ/Sistema-FEPERJ-vers-o-Web.git
+cd Sistema-FEPERJ-vers-o-Web
 ```
 
-### 2. Configure o ambiente Python
+2. **Instale as dependências**
 ```bash
-cd backend
-pip install -r requirements.txt
+npm install
 ```
 
-### 3. Configure as variáveis de ambiente
-As variáveis já estão configuradas no `vercel.json`, mas você pode criar um arquivo `.env` para desenvolvimento local:
-
+3. **Configure as variáveis de ambiente**
+Crie um arquivo `.env` na raiz do projeto:
 ```env
-MONGO_URI=mongodb+srv://jamarestudo:49912170Lacrimosa1!@familiajamar.wu9knb3.mongodb.net/?retryWrites=true&w=majority&appName=Familiajamar
-DATABASE_NAME=project0
-SECRET_KEY=7qt1DUw9b4p4zKCC
+MONGODB_URI=mongodb+srv://jamarestudo:49912170Lacrimosa1!@familiajamar.wu9knb3.mongodb.net/?retryWrites=true&w=majority&appName=Familiajamar
+DB_NAME=project0
+JWT_SECRET=7qt1DUw9b4p4zKCC
+PORT=3000
 ```
 
-### 4. Execute o servidor de desenvolvimento
+4. **Execute o servidor**
 ```bash
-cd backend
-python main.py
+npm start
 ```
 
-O servidor estará disponível em `http://localhost:8000`
+5. **Acesse o sistema**
+Abra o navegador e acesse: `http://localhost:3000`
 
-## 🌐 Deploy no Vercel
+## 📱 Acesso Online
 
-### 1. Instale o Vercel CLI
-```bash
-npm install -g vercel
-```
+- **URL**: https://feperj-sistema.vercel.app
+- **Login**: 15119236790
+- **Senha**: 49912170
 
-### 2. Faça login no Vercel
-```bash
-vercel login
-```
-
-### 3. Deploy
-```bash
-vercel
-```
-
-### 4. Configure as variáveis de ambiente no Vercel
-```bash
-vercel env add MONGO_URI
-vercel env add DATABASE_NAME
-vercel env add SECRET_KEY
-```
-
-## 👤 Usuário Padrão
-
-O sistema cria automaticamente um usuário administrador:
-
-- **Usuário**: `15119236790`
-- **Senha**: `49912170`
-
-**⚠️ IMPORTANTE**: Este é o usuário administrador fixo do sistema!
-
-## 📁 Estrutura do Projeto
+## 🗂️ Estrutura do Projeto
 
 ```
 feperj-web/
-├── backend/
-│   ├── main.py              # API FastAPI principal
-│   └── requirements.txt     # Dependências Python
-├── frontend/
-│   ├── index.html          # Página principal
-│   ├── css/
-│   │   └── style.css       # Estilos personalizados
-│   └── js/
-│       ├── app.js          # JavaScript principal
-│       ├── auth.js         # Autenticação
-│       ├── atletas.js      # Gestão de atletas
-│       ├── equipes.js      # Gestão de equipes
-│       ├── competicoes.js  # Gestão de competições
-│       ├── inscricoes.js   # Gestão de inscrições
-│       └── dashboard.js    # Dashboard e relatórios
-├── vercel.json             # Configuração do Vercel
-└── README.md               # Este arquivo
+├── server.js              # Servidor Express
+├── package.json           # Dependências Node.js
+├── vercel.json           # Configuração Vercel
+├── public/               # Arquivos frontend
+│   ├── index.html        # Página inicial
+│   ├── login.html        # Página de login
+│   ├── dashboard.html    # Dashboard
+│   ├── atletas.html      # Gestão de atletas
+│   ├── equipes.html      # Gestão de equipes
+│   ├── competicoes.html  # Gestão de competições
+│   ├── inscricoes.html   # Gestão de inscrições
+│   ├── favicon.svg       # Ícone do sistema
+│   └── js/               # Scripts JavaScript
+└── README.md             # Documentação
 ```
 
-## 🔐 Segurança
-
-- Autenticação JWT com expiração de 30 minutos
-- Senhas criptografadas com bcrypt
-- Validação de dados com Pydantic
-- CORS configurado para segurança
-- Verificação de permissões por nível de acesso
-
-## 📊 Níveis de Acesso
-
-- **Admin**: Acesso total ao sistema
-- **Coordenador**: Pode gerenciar atletas, equipes e inscrições
-- **Usuário**: Pode visualizar dados e criar inscrições
-
-## 🔄 API Endpoints
+## 🔌 API Endpoints
 
 ### Autenticação
-- `POST /login` - Login de usuário
-- `POST /usuarios` - Criar usuário
+- `POST /api/login` - Login do usuário
+- `GET /api/verificar-token` - Verificar token JWT
 
 ### Atletas
-- `GET /atletas` - Listar atletas
-- `POST /atletas` - Criar atleta
-- `PUT /atletas/{id}` - Atualizar atleta
-- `DELETE /atletas/{id}` - Excluir atleta
+- `GET /api/atletas` - Listar atletas
+- `POST /api/atletas` - Criar atleta
+- `PUT /api/atletas/:id` - Atualizar atleta
+- `DELETE /api/atletas/:id` - Excluir atleta
 
 ### Equipes
-- `GET /equipes` - Listar equipes
-- `POST /equipes` - Criar equipe
-- `PUT /equipes/{id}` - Atualizar equipe
-- `DELETE /equipes/{id}` - Excluir equipe
+- `GET /api/equipes` - Listar equipes
+- `POST /api/equipes` - Criar equipe
+- `PUT /api/equipes/:id` - Atualizar equipe
+- `DELETE /api/equipes/:id` - Excluir equipe
 
 ### Competições
-- `GET /competicoes` - Listar competições
-- `POST /competicoes` - Criar competição
-- `PUT /competicoes/{id}` - Atualizar competição
-- `DELETE /competicoes/{id}` - Excluir competição
+- `GET /api/competicoes` - Listar competições
+- `POST /api/competicoes` - Criar competição
+- `PUT /api/competicoes/:id` - Atualizar competição
+- `DELETE /api/competicoes/:id` - Excluir competição
 
 ### Inscrições
-- `GET /inscricoes` - Listar inscrições
-- `POST /inscricoes` - Criar inscrição
-- `DELETE /inscricoes/{id}` - Cancelar inscrição
+- `GET /api/inscricoes` - Listar inscrições
+- `POST /api/inscricoes` - Criar inscrição
+- `PUT /api/inscricoes/:id` - Atualizar inscrição
+- `DELETE /api/inscricoes/:id` - Excluir inscrição
 
-### Relatórios
-- `GET /relatorios/dashboard` - Dados do dashboard
+### Dashboard
+- `GET /api/dashboard` - Dados do dashboard
 
-## 🐛 Solução de Problemas
+### Health Check
+- `GET /api/health` - Status da API
 
-### Erro de conexão com MongoDB
-- Verifique se a URI do MongoDB está correta
-- Confirme se o IP está liberado no MongoDB Atlas
-- Verifique se as credenciais estão corretas
+## 🚀 Deploy
 
-### Erro de CORS
-- O CORS está configurado para aceitar todas as origens em desenvolvimento
-- Para produção, configure as origens permitidas
+### Deploy Automático (Recomendado)
+Execute o script de deploy:
+```bash
+deploy_nodejs.bat
+```
 
-### Erro de autenticação
-- Verifique se o token JWT está sendo enviado corretamente
-- Confirme se o token não expirou
-- Verifique se o usuário existe no banco de dados
+### Deploy Manual
+1. Faça commit das alterações
+2. Push para o GitHub
+3. O Vercel fará o deploy automaticamente
 
-## 📝 Logs
+## 🔒 Segurança
 
-O sistema registra logs de todas as operações importantes. Os logs incluem:
-- Login/logout de usuários
-- Criação, edição e exclusão de registros
-- Erros do sistema
-- Acessos não autorizados
+- Autenticação JWT
+- Senhas criptografadas com bcrypt
+- Validação de dados
+- CORS configurado
+- Headers de segurança
 
-## 🔄 Backup
+## 📊 Banco de Dados
 
-Para fazer backup dos dados:
-1. Acesse o MongoDB Atlas
-2. Vá para "Database" > "Browse Collections"
-3. Selecione as coleções desejadas
-4. Clique em "Export" para baixar os dados
+### Coleções MongoDB
+- `usuarios` - Usuários do sistema
+- `atletas` - Cadastro de atletas
+- `equipes` - Cadastro de equipes
+- `competicoes` - Cadastro de competições
+- `inscricoes` - Inscrições em competições
+
+## 🛠️ Desenvolvimento
+
+### Scripts Disponíveis
+- `npm start` - Iniciar servidor de produção
+- `npm run dev` - Iniciar servidor de desenvolvimento (nodemon)
+
+### Logs
+O sistema registra logs detalhados no console:
+- Conexão com MongoDB
+- Operações de CRUD
+- Erros e exceções
+- Autenticação
 
 ## 📞 Suporte
 
 Para suporte técnico ou dúvidas:
-- Abra uma issue no repositório
-- Entre em contato com a equipe de desenvolvimento
+- Email: admin@feperj.com
+- Sistema: https://feperj-sistema.vercel.app
 
 ## 📄 Licença
 
-Este projeto é desenvolvido para a FEPERJ. Todos os direitos reservados.
+Este projeto é desenvolvido para a FEPERJ - Federação de Powerlifting do Estado do Rio de Janeiro.
 
 ---
 
-**Desenvolvido com ❤️ para a Federação de Powerlifting do Estado do Rio de Janeiro**
+**FEPERJ** - Federação de Powerlifting do Estado do Rio de Janeiro  
+**Sistema de Gestão** - Versão Web

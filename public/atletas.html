@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Atletas - Sistema FEPERJ</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 2px 0;
+        }
+        
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 p-6">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-white mb-2">FEPERJ</h1>
+                <p class="text-white opacity-80 text-sm">Sistema de Gestão</p>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="dashboard.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="atletas.html" class="nav-link active flex items-center p-3">
+                    <i class="fas fa-users mr-3"></i>
+                    Atletas
+                </a>
+                <a href="equipes.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-shield-alt mr-3"></i>
+                    Equipes
+                </a>
+                <a href="competicoes.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-trophy mr-3"></i>
+                    Competições
+                </a>
+                <a href="inscricoes.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-clipboard-list mr-3"></i>
+                    Inscrições
+                </a>
+                <a href="resultados.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-medal mr-3"></i>
+                    Resultados
+                </a>
+                <a href="relatorios.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Relatórios
+                </a>
+            </nav>
+            
+            <div class="mt-auto pt-8">
+                <div class="bg-white bg-opacity-10 rounded-lg p-4 mb-4">
+                    <div class="flex items-center text-white">
+                        <i class="fas fa-user-circle text-2xl mr-3"></i>
+                        <div>
+                            <div class="font-semibold" id="userName">Carregando...</div>
+                            <div class="text-sm opacity-80" id="userRole">Carregando...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="logout()" class="w-full bg-red-500 hover:bg-red-600 text-white p-3 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Sair
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Gestão de Atletas</h2>
+                <p class="text-gray-600">Cadastro e gerenciamento de atletas da FEPERJ</p>
+            </div>
+            
+            <!-- Botões de Ação -->
+            <div class="mb-6 flex flex-wrap gap-4">
+                <button onclick="abrirModalAtleta()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Novo Atleta
+                </button>
+                <button onclick="exportarCSV()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-download mr-2"></i>
+                    Exportar CSV
+                </button>
+                <button onclick="importarCSV()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-upload mr-2"></i>
+                    Importar CSV
+                </button>
+            </div>
+            
+            <!-- Filtros e Busca -->
+            <div class="mb-6 bg-white p-4 rounded-lg shadow">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar por Nome</label>
+                        <input type="text" id="buscaNome" placeholder="Digite o nome..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Equipe</label>
+                        <select id="filtroEquipe" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Todas as equipes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="filtroStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Todos os status</option>
+                            <option value="ATIVO">Ativo</option>
+                            <option value="INATIVO">Inativo</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="aplicarFiltros()" class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors">
+                            <i class="fas fa-search mr-2"></i>
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabela de Atletas -->
+            <div class="table-container">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Lista de Atletas</h3>
+                        <div class="text-sm text-gray-600">
+                            <span id="totalAtletas">0</span> atletas encontrados
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matrícula</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipe</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaAtletas" class="bg-white divide-y divide-gray-200">
+                                <!-- Dados serão inseridos aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Atleta -->
+    <div id="modalAtleta" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-800" id="modalTitulo">Novo Atleta</h3>
+                <button onclick="fecharModalAtleta()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="formAtleta" class="space-y-4">
+                <input type="hidden" id="atletaId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                        <input type="text" id="nome" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">CPF *</label>
+                        <input type="text" id="cpf" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="000.000.000-00">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <input type="email" id="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                        <input type="text" id="telefone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="(00) 00000-0000">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Nascimento</label>
+                        <input type="date" id="dataNascimento" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Filiação *</label>
+                        <input type="date" id="dataFiliacao" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sexo *</label>
+                        <select id="sexo" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecione...</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Feminino</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Equipe</label>
+                        <select id="equipe" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecione uma equipe...</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                        <select id="categoria" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecione uma categoria...</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Peso (kg)</label>
+                        <input type="number" id="peso" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Altura (m)</label>
+                        <input type="number" id="altura" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Maior Total (kg)</label>
+                        <input type="number" id="maiorTotal" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ATIVO">Ativo</option>
+                            <option value="INATIVO">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Endereço</label>
+                    <textarea id="endereco" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                    <textarea id="observacoes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" onclick="fecharModalAtleta()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-save mr-2"></i>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        let authToken = localStorage.getItem('authToken');
+        let userInfo = null;
+        let atletas = [];
+        let equipes = [];
+        let categorias = [];
+        
+        // Verificar autenticação
+        function verificarAutenticacao() {
+            if (!authToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                if (!userInfo) {
+                    throw new Error('Informações do usuário não encontradas');
+                }
+                
+                document.getElementById('userName').textContent = userInfo.nome || userInfo.username;
+                document.getElementById('userRole').textContent = userInfo.nivel_acesso || 'Usuário';
+                
+            } catch (error) {
+                console.error('Erro ao verificar autenticação:', error);
+                logout();
+            }
+        }
+        
+        // Função de logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('loginTime');
+            window.location.href = 'login.html';
+        }
+        
+        // Função para fazer requisições autenticadas
+        async function apiRequest(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            const response = await fetch(`${API_BASE_URL}${url}`, {
+                ...defaultOptions,
+                ...options
+            });
+            
+            if (response.status === 401) {
+                logout();
+                return null;
+            }
+            
+            return response.json();
+        }
+        
+        // Carregar dados
+        async function carregarDados() {
+            try {
+                // Carregar atletas
+                const atletasData = await apiRequest('/api/atletas');
+                if (atletasData) {
+                    atletas = atletasData;
+                    atualizarTabelaAtletas();
+                }
+                
+                // Carregar equipes
+                const equipesData = await apiRequest('/api/equipes');
+                if (equipesData) {
+                    equipes = equipesData;
+                    preencherSelectEquipes();
+                }
+                
+                // Carregar categorias
+                const categoriasData = await apiRequest('/api/categorias');
+                if (categoriasData) {
+                    categorias = categoriasData;
+                    preencherSelectCategorias();
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+        
+        // Atualizar tabela de atletas
+        function atualizarTabelaAtletas() {
+            const tbody = document.getElementById('tabelaAtletas');
+            const totalSpan = document.getElementById('totalAtletas');
+            
+            tbody.innerHTML = '';
+            totalSpan.textContent = atletas.length;
+            
+            atletas.forEach(atleta => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.matricula || 'N/A'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.nome}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.cpf}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.equipe_nome || 'N/A'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.categoria_nome || 'N/A'}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${atleta.status === 'ATIVO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${atleta.status}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm font-medium">
+                        <button onclick="editarAtleta('${atleta._id}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="excluirAtleta('${atleta._id}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Preencher select de equipes
+        function preencherSelectEquipes() {
+            const selectEquipe = document.getElementById('equipe');
+            const filtroEquipe = document.getElementById('filtroEquipe');
+            
+            const options = ['<option value="">Selecione uma equipe...</option>'];
+            equipes.forEach(equipe => {
+                options.push(`<option value="${equipe._id}">${equipe.nome}</option>`);
+            });
+            
+            selectEquipe.innerHTML = options.join('');
+            filtroEquipe.innerHTML = options.join('');
+        }
+        
+        // Preencher select de categorias
+        function preencherSelectCategorias() {
+            const selectCategoria = document.getElementById('categoria');
+            
+            const options = ['<option value="">Selecione uma categoria...</option>'];
+            categorias.forEach(categoria => {
+                options.push(`<option value="${categoria._id}">${categoria.nome}</option>`);
+            });
+            
+            selectCategoria.innerHTML = options.join('');
+        }
+        
+        // Modal de atleta
+        function abrirModalAtleta() {
+            document.getElementById('modalTitulo').textContent = 'Novo Atleta';
+            document.getElementById('formAtleta').reset();
+            document.getElementById('atletaId').value = '';
+            document.getElementById('modalAtleta').style.display = 'block';
+        }
+        
+        function fecharModalAtleta() {
+            document.getElementById('modalAtleta').style.display = 'none';
+        }
+        
+        // Editar atleta
+        function editarAtleta(id) {
+            const atleta = atletas.find(a => a._id === id);
+            if (!atleta) return;
+            
+            document.getElementById('modalTitulo').textContent = 'Editar Atleta';
+            document.getElementById('atletaId').value = atleta._id;
+            document.getElementById('nome').value = atleta.nome;
+            document.getElementById('cpf').value = atleta.cpf;
+            document.getElementById('email').value = atleta.email;
+            document.getElementById('telefone').value = atleta.telefone || '';
+            document.getElementById('dataNascimento').value = atleta.data_nascimento || '';
+            document.getElementById('dataFiliacao').value = atleta.data_filiacao || '';
+            document.getElementById('sexo').value = atleta.sexo;
+            document.getElementById('equipe').value = atleta.id_equipe || '';
+            document.getElementById('categoria').value = atleta.id_categoria || '';
+            document.getElementById('peso').value = atleta.peso || '';
+            document.getElementById('altura').value = atleta.altura || '';
+            document.getElementById('maiorTotal').value = atleta.maior_total || '';
+            document.getElementById('status').value = atleta.status;
+            document.getElementById('endereco').value = atleta.endereco || '';
+            document.getElementById('observacoes').value = atleta.observacoes || '';
+            
+            document.getElementById('modalAtleta').style.display = 'block';
+        }
+        
+        // Excluir atleta
+        async function excluirAtleta(id) {
+            if (!confirm('Tem certeza que deseja excluir este atleta?')) return;
+            
+            try {
+                const response = await apiRequest(`/api/atletas/${id}`, { method: 'DELETE' });
+                if (response && response.success) {
+                    alert('Atleta excluído com sucesso!');
+                    carregarDados();
+                } else {
+                    alert('Erro ao excluir atleta');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir atleta:', error);
+                alert('Erro ao excluir atleta');
+            }
+        }
+        
+        // Salvar atleta
+        async function salvarAtleta(formData) {
+            const atletaId = document.getElementById('atletaId').value;
+            const url = atletaId ? `/api/atletas/${atletaId}` : '/api/atletas';
+            const method = atletaId ? 'PUT' : 'POST';
+            
+            try {
+                const response = await apiRequest(url, {
+                    method: method,
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response && response.success) {
+                    alert(atletaId ? 'Atleta atualizado com sucesso!' : 'Atleta criado com sucesso!');
+                    fecharModalAtleta();
+                    carregarDados();
+                } else {
+                    alert(response?.error || 'Erro ao salvar atleta');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar atleta:', error);
+                alert('Erro ao salvar atleta');
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('formAtleta').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                nome: document.getElementById('nome').value,
+                cpf: document.getElementById('cpf').value,
+                email: document.getElementById('email').value,
+                telefone: document.getElementById('telefone').value,
+                data_nascimento: document.getElementById('dataNascimento').value,
+                data_filiacao: document.getElementById('dataFiliacao').value,
+                sexo: document.getElementById('sexo').value,
+                id_equipe: document.getElementById('equipe').value || null,
+                id_categoria: document.getElementById('categoria').value || null,
+                peso: parseFloat(document.getElementById('peso').value) || null,
+                altura: parseFloat(document.getElementById('altura').value) || null,
+                maior_total: parseFloat(document.getElementById('maiorTotal').value) || null,
+                status: document.getElementById('status').value,
+                endereco: document.getElementById('endereco').value,
+                observacoes: document.getElementById('observacoes').value
+            };
+            
+            await salvarAtleta(formData);
+        });
+        
+        // Funções de exportação/importação
+        function exportarCSV() {
+            const headers = ['Matrícula', 'Nome', 'CPF', 'Email', 'Telefone', 'Data Nascimento', 'Data Filiação', 'Sexo', 'Equipe', 'Categoria', 'Peso', 'Altura', 'Maior Total', 'Status', 'Endereço', 'Observações'];
+            
+            const csvContent = [
+                headers.join(','),
+                ...atletas.map(atleta => [
+                    atleta.matricula || '',
+                    atleta.nome,
+                    atleta.cpf,
+                    atleta.email,
+                    atleta.telefone || '',
+                    atleta.data_nascimento || '',
+                    atleta.data_filiacao || '',
+                    atleta.sexo,
+                    atleta.equipe_nome || '',
+                    atleta.categoria_nome || '',
+                    atleta.peso || '',
+                    atleta.altura || '',
+                    atleta.maior_total || '',
+                    atleta.status,
+                    atleta.endereco || '',
+                    atleta.observacoes || ''
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `atletas_feperj_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+        
+        function importarCSV() {
+            alert('Funcionalidade de importação será implementada em breve!');
+        }
+        
+        function aplicarFiltros() {
+            const buscaNome = document.getElementById('buscaNome').value.toLowerCase();
+            const filtroEquipe = document.getElementById('filtroEquipe').value;
+            const filtroStatus = document.getElementById('filtroStatus').value;
+            
+            const atletasFiltrados = atletas.filter(atleta => {
+                const matchNome = !buscaNome || atleta.nome.toLowerCase().includes(buscaNome);
+                const matchEquipe = !filtroEquipe || atleta.id_equipe === filtroEquipe;
+                const matchStatus = !filtroStatus || atleta.status === filtroStatus;
+                
+                return matchNome && matchEquipe && matchStatus;
+            });
+            
+            // Atualizar tabela com dados filtrados
+            const tbody = document.getElementById('tabelaAtletas');
+            const totalSpan = document.getElementById('totalAtletas');
+            
+            tbody.innerHTML = '';
+            totalSpan.textContent = atletasFiltrados.length;
+            
+            atletasFiltrados.forEach(atleta => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.matricula || 'N/A'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.nome}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.cpf}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.equipe_nome || 'N/A'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${atleta.categoria_nome || 'N/A'}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${atleta.status === 'ATIVO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${atleta.status}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm font-medium">
+                        <button onclick="editarAtleta('${atleta._id}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="excluirAtleta('${atleta._id}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Inicializar página
+        window.addEventListener('load', function() {
+            verificarAutenticacao();
+            carregarDados();
+        });
+    </script>
+</body>
+</html>
