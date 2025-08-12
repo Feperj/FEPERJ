@@ -1,28 +1,25 @@
 {
   "version": 2,
+  "name": "feperj-sistema",
   "builds": [
     {
-      "src": "backend/main.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "frontend/**",
-      "use": "@vercel/static"
+      "src": "server.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/main.py"
+      "dest": "/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "frontend/$1"
+      "dest": "/public/$1"
     }
   ],
   "env": {
-    "MONGO_URI": "mongodb+srv://jamarestudo:49912170Lacrimosa1!@familiajamar.wu9knb3.mongodb.net/?retryWrites=true&w=majority&appName=Familiajamar",
-    "DATABASE_NAME": "project0",
-    "SECRET_KEY": "7qt1DUw9b4p4zKCC"
+    "MONGODB_URI": "mongodb+srv://jamarestudo:49912170Lacrimosa1!@familiajamar.wu9knb3.mongodb.net/?retryWrites=true&w=majority&appName=Familiajamar",
+    "DB_NAME": "project0",
+    "JWT_SECRET": "7qt1DUw9b4p4zKCC"
   }
 }

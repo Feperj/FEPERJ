@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema FEPERJ</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 2px 0;
+        }
+        
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 p-6">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-white mb-2">FEPERJ</h1>
+                <p class="text-white opacity-80 text-sm">Sistema de Gestão</p>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="dashboard.html" class="nav-link active flex items-center p-3">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="atletas.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-users mr-3"></i>
+                    Atletas
+                </a>
+                <a href="equipes.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-shield-alt mr-3"></i>
+                    Equipes
+                </a>
+                <a href="competicoes.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-trophy mr-3"></i>
+                    Competições
+                </a>
+                <a href="inscricoes.html" class="nav-link flex items-center p-3">
+                    <i class="fas fa-clipboard-list mr-3"></i>
+                    Inscrições
+                </a>
+            </nav>
+            
+            <div class="mt-auto pt-8">
+                <div class="bg-white bg-opacity-10 rounded-lg p-4 mb-4">
+                    <div class="flex items-center text-white">
+                        <i class="fas fa-user-circle text-2xl mr-3"></i>
+                        <div>
+                            <div class="font-semibold" id="userName">Carregando...</div>
+                            <div class="text-sm opacity-80" id="userRole">Carregando...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="logout()" class="w-full bg-red-500 hover:bg-red-600 text-white p-3 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Sair
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
+                <p class="text-gray-600">Visão geral do sistema FEPERJ</p>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <i class="fas fa-users text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Total de Atletas</p>
+                            <p class="text-2xl font-bold text-gray-800" id="totalAtletas">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fas fa-shield-alt text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Total de Equipes</p>
+                            <p class="text-2xl font-bold text-gray-800" id="totalEquipes">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-yellow-100 rounded-lg">
+                            <i class="fas fa-trophy text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Competições</p>
+                            <p class="text-2xl font-bold text-gray-800" id="totalCompeticoes">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <i class="fas fa-clipboard-list text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Inscrições</p>
+                            <p class="text-2xl font-bold text-gray-800" id="totalInscricoes">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="chart-container p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Atletas por Equipe</h3>
+                    <canvas id="atletasPorEquipeChart" width="400" height="200"></canvas>
+                </div>
+                
+                <div class="chart-container p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Distribuição de Inscrições</h3>
+                    <canvas id="inscricoesChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        let authToken = localStorage.getItem('authToken');
+        let userInfo = null;
+        
+        // Verificar autenticação
+        function verificarAutenticacao() {
+            if (!authToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                if (!userInfo) {
+                    throw new Error('Informações do usuário não encontradas');
+                }
+                
+                // Atualizar informações do usuário na interface
+                document.getElementById('userName').textContent = userInfo.nome || userInfo.username;
+                document.getElementById('userRole').textContent = userInfo.nivel_acesso || 'Usuário';
+                
+            } catch (error) {
+                console.error('Erro ao verificar autenticação:', error);
+                logout();
+            }
+        }
+        
+        // Função de logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('loginTime');
+            window.location.href = 'login.html';
+        }
+        
+        // Função para fazer requisições autenticadas
+        async function apiRequest(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            const response = await fetch(`${API_BASE_URL}${url}`, {
+                ...defaultOptions,
+                ...options
+            });
+            
+            if (response.status === 401) {
+                logout();
+                return null;
+            }
+            
+            return response.json();
+        }
+        
+        // Carregar dados do dashboard
+        async function carregarDashboard() {
+            try {
+                const data = await apiRequest('/api/dashboard');
+                if (!data) return;
+                
+                // Atualizar estatísticas
+                document.getElementById('totalAtletas').textContent = data.totais.atletas;
+                document.getElementById('totalEquipes').textContent = data.totais.equipes;
+                document.getElementById('totalCompeticoes').textContent = data.totais.competicoes;
+                document.getElementById('totalInscricoes').textContent = data.totais.inscricoes;
+                
+                // Criar gráfico de atletas por equipe
+                criarGraficoAtletasPorEquipe(data.atletas_por_equipe);
+                
+                // Criar gráfico de inscrições
+                criarGraficoInscricoes(data.totais);
+                
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            }
+        }
+        
+        // Criar gráfico de atletas por equipe
+        function criarGraficoAtletasPorEquipe(dados) {
+            const ctx = document.getElementById('atletasPorEquipeChart').getContext('2d');
+            
+            const labels = dados.map(item => item.equipe_nome || 'Sem Equipe');
+            const values = dados.map(item => item.count);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Atletas',
+                        data: values,
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#f5576c',
+                            '#4facfe',
+                            '#00f2fe'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Criar gráfico de inscrições
+        function criarGraficoInscricoes(dados) {
+            const ctx = document.getElementById('inscricoesChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Atletas', 'Equipes', 'Competições', 'Inscrições'],
+                    datasets: [{
+                        data: [
+                            dados.atletas,
+                            dados.equipes,
+                            dados.competicoes,
+                            dados.inscricoes
+                        ],
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#f5576c'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Inicializar página
+        window.addEventListener('load', function() {
+            verificarAutenticacao();
+            carregarDashboard();
+        });
+    </script>
+</body>
+</html>
