@@ -144,17 +144,17 @@ async def setup_admin():
     try:
         db = get_database()
         
-        # Verificar se já existe um admin
-        admin = db.usuarios.find_one({"username": "admin"})
+        # Verificar se já existe um admin com as credenciais fixas
+        admin = db.usuarios.find_one({"username": "15119236790"})
         if admin:
             return {"message": "Usuário admin já existe"}
         
-        # Criar usuário admin
-        hashed_password = pwd_context.hash("admin123")
+        # Criar usuário admin com credenciais fixas
+        hashed_password = pwd_context.hash("49912170")
         admin_data = {
-            "username": "admin",
+            "username": "15119236790",
             "password": hashed_password,
-            "nome": "Administrador",
+            "nome": "Administrador FEPERJ",
             "email": "admin@feperj.com",
             "nivel_acesso": "admin",
             "data_criacao": datetime.utcnow()

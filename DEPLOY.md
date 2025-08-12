@@ -13,7 +13,7 @@
    git init
    git add .
    git commit -m "Sistema FEPERJ - Versão Web"
-   git remote add origin https://github.com/seu-usuario/feperj-web.git
+   git remote add origin https://github.com/RJSeERMJ/Sistema-FEPERJ-vers-o-Web.
    git push -u origin main
    ```
 
@@ -65,8 +65,8 @@ https://feperj-web.vercel.app
 ```
 
 ### Credenciais de Acesso
-- **Usuário**: `admin`
-- **Senha**: `admin123`
+- **Usuário**: `15119236790`
+- **Senha**: `49912170`
 
 **⚠️ IMPORTANTE**: Altere a senha após o primeiro login!
 

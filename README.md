@@ -95,10 +95,10 @@ vercel env add SECRET_KEY
 
 O sistema cria automaticamente um usuário administrador:
 
-- **Usuário**: `admin`
-- **Senha**: `admin123`
+- **Usuário**: `15119236790`
+- **Senha**: `49912170`
 
-**⚠️ IMPORTANTE**: Altere a senha após o primeiro login!
+**⚠️ IMPORTANTE**: Este é o usuário administrador fixo do sistema!
 
 ## 📁 Estrutura do Projeto
 
