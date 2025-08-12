@@ -447,6 +447,10 @@ async def teste():
 async def debug():
     return FileResponse("debug_login.html")
 
+@app.get("/sistema")
+async def sistema():
+    return FileResponse("teste_sistema.html")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

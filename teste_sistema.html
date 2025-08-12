@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Sistema - FEPERJ</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; min-height: 100vh; }
+        .header { background: #1f2937; color: white; padding: 1rem; }
+        .nav { background: #374151; padding: 0.5rem; }
+        .nav button { background: #4b5563; color: white; border: none; padding: 0.5rem 1rem; margin: 0 0.25rem; cursor: pointer; }
+        .nav button:hover { background: #6b7280; }
+        .nav button.active { background: #3b82f6; }
+        .content { padding: 2rem; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+        .hidden { display: none; }
+        .success { color: #059669; }
+        .error { color: #dc2626; }
+        .info { color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <div class="card" style="width: 400px;">
+                    <h2 style="text-align: center; margin-bottom: 2rem;">Sistema FEPERJ</h2>
+                    <form id="loginForm">
+                        <div style="margin-bottom: 1rem;">
+                            <label>Usuário:</label>
+                            <input type="text" id="username" value="15119236790" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label>Senha:</label>
+                            <input type="password" id="password" value="49912170" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                        </div>
+                        <button type="submit" style="width: 100%; padding: 0.75rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Entrar
+                        </button>
+                    </form>
+                    <div id="loginError" class="error hidden" style="margin-top: 1rem; text-align: center;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main System -->
+        <div id="mainSystem" class="hidden">
+            <div class="header">
+                <h1>FEPERJ - Sistema de Gestão</h1>
+                <div id="userInfo"></div>
+                <button onclick="logout()" style="background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+                    Sair
+                </button>
+            </div>
+
+            <div class="nav">
+                <button onclick="showSection('dashboard')" class="active">Dashboard</button>
+                <button onclick="showSection('atletas')">Atletas</button>
+                <button onclick="showSection('equipes')">Equipes</button>
+                <button onclick="showSection('competicoes')">Competições</button>
+                <button onclick="showSection('inscricoes')">Inscrições</button>
+            </div>
+
+            <div class="content">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="section active">
+                    <h2>Dashboard</h2>
+                    <div class="card">
+                        <h3>Estatísticas</h3>
+                        <p>Total de Atletas: <span id="totalAtletas">0</span></p>
+                        <p>Total de Equipes: <span id="totalEquipes">0</span></p>
+                        <p>Total de Competições: <span id="totalCompeticoes">0</span></p>
+                        <p>Total de Inscrições: <span id="totalInscricoes">0</span></p>
+                    </div>
+                    <div class="card">
+                        <h3>Status do Sistema</h3>
+                        <p id="systemStatus">Carregando...</p>
+                    </div>
+                </div>
+
+                <!-- Atletas Section -->
+                <div id="atletas" class="section">
+                    <h2>Gestão de Atletas</h2>
+                    <div class="card">
+                        <p>Funcionalidade de atletas será implementada aqui.</p>
+                    </div>
+                </div>
+
+                <!-- Equipes Section -->
+                <div id="equipes" class="section">
+                    <h2>Gestão de Equipes</h2>
+                    <div class="card">
+                        <p>Funcionalidade de equipes será implementada aqui.</p>
+                    </div>
+                </div>
+
+                <!-- Competições Section -->
+                <div id="competicoes" class="section">
+                    <h2>Gestão de Competições</h2>
+                    <div class="card">
+                        <p>Funcionalidade de competições será implementada aqui.</p>
+                    </div>
+                </div>
+
+                <!-- Inscrições Section -->
+                <div id="inscricoes" class="section">
+                    <h2>Gestão de Inscrições</h2>
+                    <div class="card">
+                        <p>Funcionalidade de inscrições será implementada aqui.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        let authToken = null;
+        let currentUser = null;
+
+        // Funções de navegação
+        function showSection(sectionName) {
+            // Esconder todas as seções
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar seção selecionada
+            document.getElementById(sectionName).classList.add('active');
+            
+            // Adicionar classe active ao botão clicado
+            event.target.classList.add('active');
+        }
+
+        // Funções de autenticação
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            errorDiv.classList.add('hidden');
+            
+            try {
+                console.log('Tentando login...');
+                
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', password);
+                
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Credenciais inválidas');
+                }
+                
+                const data = await response.json();
+                
+                console.log('Login bem-sucedido:', data);
+                
+                authToken = data.access_token;
+                currentUser = data.usuario;
+                
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('userInfo', JSON.stringify(currentUser));
+                
+                showMainSystem();
+                updateUserInfo();
+                loadDashboard();
+                
+            } catch (error) {
+                console.error('Erro no login:', error);
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function showMainSystem() {
+            console.log('Mostrando sistema principal...');
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainSystem').classList.remove('hidden');
+        }
+
+        function updateUserInfo() {
+            const userInfoElement = document.getElementById('userInfo');
+            if (userInfoElement && currentUser) {
+                userInfoElement.textContent = `Olá, ${currentUser.nome}`;
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                console.log('Carregando dashboard...');
+                
+                const response = await fetch(`${API_BASE_URL}/relatorios/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar dashboard');
+                }
+                
+                const data = await response.json();
+                console.log('Dados do dashboard:', data);
+                
+                document.getElementById('totalAtletas').textContent = data.totais.atletas || 0;
+                document.getElementById('totalEquipes').textContent = data.totais.equipes || 0;
+                document.getElementById('totalCompeticoes').textContent = data.totais.competicoes || 0;
+                document.getElementById('totalInscricoes').textContent = data.totais.inscricoes || 0;
+                
+                document.getElementById('systemStatus').textContent = 'Sistema funcionando normalmente';
+                document.getElementById('systemStatus').className = 'success';
+                
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                document.getElementById('systemStatus').textContent = 'Erro ao carregar dados: ' + error.message;
+                document.getElementById('systemStatus').className = 'error';
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            
+            document.getElementById('mainSystem').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+        // Verificar se há sessão salva
+        window.onload = function() {
+            const savedToken = localStorage.getItem('authToken');
+            const savedUser = localStorage.getItem('userInfo');
+            
+            if (savedToken && savedUser) {
+                authToken = savedToken;
+                currentUser = JSON.parse(savedUser);
+                showMainSystem();
+                updateUserInfo();
+                loadDashboard();
+            }
+        };
+    </script>
+</body>
+</html>
