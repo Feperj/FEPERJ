@@ -434,9 +434,12 @@ async def health_check():
 async def test():
     return {"message": "API funcionando", "timestamp": datetime.utcnow().isoformat()}
 
-# Rota para servir arquivos estáticos
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+# Rota de teste para verificar se a API está respondendo corretamente
+@app.get("/api/test")
+async def api_test():
+    return {"status": "success", "message": "API FEPERJ funcionando", "timestamp": datetime.utcnow().isoformat()}
 
+# Rotas de páginas HTML (devem vir depois das rotas da API)
 @app.get("/")
 async def root():
     return FileResponse("frontend/index.html")
@@ -480,6 +483,13 @@ async def sistema():
 @app.get("/teste-login")
 async def teste_login():
     return FileResponse("frontend/teste_login_simples.html")
+
+@app.get("/teste-json")
+async def teste_json():
+    return FileResponse("frontend/teste_json.html")
+
+# Rota para servir arquivos estáticos (deve vir por último)
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
