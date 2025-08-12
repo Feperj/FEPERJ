@@ -107,10 +107,24 @@ def verify_token(token: str):
     except:
         return None
 
-def get_current_user(token: str = Depends(verify_token)):
-    if not token:
+def get_current_user(authorization: str = Depends(lambda x: x.headers.get("Authorization"))):
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Token inválido")
-    return token
+    
+    token = authorization.replace("Bearer ", "")
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Token inválido")
+    
+    # Buscar usuário no banco
+    db = get_database()
+    usuario = db.usuarios.find_one({"username": payload.get("sub")})
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+    
+    # Converter ObjectId para string
+    usuario["_id"] = str(usuario["_id"])
+    return usuario
 
 # Rotas de autenticação
 @app.post("/login")
@@ -123,6 +137,34 @@ async def login(username: str = Form(...), password: str = Form(...)):
     
     access_token = create_access_token(data={"sub": usuario["username"]})
     return {"access_token": access_token, "token_type": "bearer", "usuario": usuario}
+
+@app.post("/setup-admin")
+async def setup_admin():
+    """Cria usuário admin inicial se não existir"""
+    try:
+        db = get_database()
+        
+        # Verificar se já existe um admin
+        admin = db.usuarios.find_one({"username": "admin"})
+        if admin:
+            return {"message": "Usuário admin já existe"}
+        
+        # Criar usuário admin
+        hashed_password = pwd_context.hash("admin123")
+        admin_data = {
+            "username": "admin",
+            "password": hashed_password,
+            "nome": "Administrador",
+            "email": "admin@feperj.com",
+            "nivel_acesso": "admin",
+            "data_criacao": datetime.utcnow()
+        }
+        
+        result = db.usuarios.insert_one(admin_data)
+        return {"message": "Usuário admin criado com sucesso", "id": str(result.inserted_id)}
+    except Exception as e:
+        print(f"Erro ao criar admin: {e}")
+        return {"message": f"Erro ao criar admin: {str(e)}"}
 
 @app.post("/usuarios")
 async def criar_usuario(usuario: Usuario):
@@ -379,6 +421,11 @@ def gerar_matricula(cpf):
     # Gerar timestamp
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     return f"FEP{timestamp}{ultimos_digitos}"
+
+# Rota de health check
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "message": "Sistema FEPERJ funcionando"}
 
 # Rota para servir arquivos estáticos
 app.mount("/static", StaticFiles(directory="frontend"), name="static")

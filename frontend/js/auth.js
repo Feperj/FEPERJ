@@ -1,13 +1,5 @@
 // Gerenciamento de autenticação
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Event listener para o formulário de login
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-});
-
 async function handleLogin(event) {
     event.preventDefault();
     
@@ -94,10 +86,26 @@ function updateUserInfo() {
 // Função para criar usuário administrador inicial
 async function createInitialAdmin() {
     try {
-        const adminUser = {
-            username: 'admin',
-            password: 'admin123',
-            nome: 'Administrador',
+        const response = await fetch(`${API_BASE_URL}/setup-admin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Setup admin:', result.message);
+            return true;
+        } else {
+            console.error('Erro ao criar admin:', response.statusText);
+            return false;
+        }
+    } catch (error) {
+        console.error('Erro ao criar admin:', error);
+        return false;
+    }
+}
             email: 'admin@feperj.com',
             nivel_acesso: 'admin'
         };
@@ -242,10 +250,22 @@ function clearAuthData() {
     localStorage.removeItem('userInfo');
 }
 
-// Função para inicializar autenticação
-async function initAuth() {
+
+
+// Inicializar autenticação quando a página carregar
+document.addEventListener('DOMContentLoaded', async function() {
     // Tentar criar usuário administrador inicial
-    await createInitialAdmin();
+    try {
+        await createInitialAdmin();
+    } catch (error) {
+        console.error('Erro ao criar admin inicial:', error);
+    }
+    
+    // Event listener para o formulário de login
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
     
     // Verificar se há token salvo
     const savedToken = localStorage.getItem('authToken');
@@ -275,7 +295,4 @@ async function initAuth() {
     } else {
         showLoginScreen();
     }
-}
-
-// Inicializar autenticação quando a página carregar
-document.addEventListener('DOMContentLoaded', initAuth);
+});
