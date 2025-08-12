@@ -29,6 +29,9 @@ async function handleLogin(event) {
         formData.append('username', username);
         formData.append('password', password);
         
+        console.log('Tentando login para:', API_BASE_URL);
+        console.log('Username:', username);
+        
         const response = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
             body: formData
@@ -86,6 +89,8 @@ function updateUserInfo() {
 // Função para criar usuário administrador inicial
 async function createInitialAdmin() {
     try {
+        console.log('Tentando criar admin em:', `${API_BASE_URL}/setup-admin`);
+        
         const response = await fetch(`${API_BASE_URL}/setup-admin`, {
             method: 'POST',
             headers: {

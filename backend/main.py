@@ -427,12 +427,21 @@ def gerar_matricula(cpf):
 async def health_check():
     return {"status": "ok", "message": "Sistema FEPERJ funcionando"}
 
+# Rota de teste simples
+@app.get("/test")
+async def test():
+    return {"message": "API funcionando", "timestamp": datetime.utcnow().isoformat()}
+
 # Rota para servir arquivos estáticos
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 @app.get("/")
 async def root():
     return FileResponse("frontend/index.html")
+
+@app.get("/teste")
+async def teste():
+    return FileResponse("teste_api.html")
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API - Sistema FEPERJ</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Teste API - Sistema FEPERJ</h1>
+    
+    <div>
+        <button onclick="testHealth()">Testar Health Check</button>
+        <button onclick="testSetupAdmin()">Testar Setup Admin</button>
+        <button onclick="testLogin()">Testar Login</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        
+        function addResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `test ${isSuccess ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        async function testHealth() {
+            try {
+                addResult('Testando health check...');
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                addResult(`Health check OK: ${JSON.stringify(data)}`);
+            } catch (error) {
+                addResult(`Erro no health check: ${error.message}`, false);
+            }
+        }
+        
+        async function testSetupAdmin() {
+            try {
+                addResult('Testando setup admin...');
+                const response = await fetch(`${API_BASE_URL}/setup-admin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                addResult(`Setup admin: ${JSON.stringify(data)}`);
+            } catch (error) {
+                addResult(`Erro no setup admin: ${error.message}`, false);
+            }
+        }
+        
+        async function testLogin() {
+            try {
+                addResult('Testando login...');
+                const formData = new FormData();
+                formData.append('username', '15119236790');
+                formData.append('password', '49912170');
+                
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`Login OK: ${data.usuario.nome}`);
+                } else {
+                    const error = await response.json();
+                    addResult(`Erro no login: ${error.detail}`, false);
+                }
+            } catch (error) {
+                addResult(`Erro no login: ${error.message}`, false);
+            }
+        }
+        
+        // Teste automático ao carregar
+        window.onload = function() {
+            addResult(`API Base URL: ${API_BASE_URL}`);
+            testHealth();
+        };
+    </script>
+</body>
+</html>
