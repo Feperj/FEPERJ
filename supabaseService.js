@@ -868,16 +868,19 @@ const dashboardService = {
     const melhoresIPFPointsFeminino = this.calcularMelhoresIPFPoints(resultadosImportados, 'F');
 
     return {
-      totalAtletas: atletas.length,
-      totalEquipes: equipes.length,
-      totalCompeticoes: competicoes.length,
+      totais: {
+        atletas: atletas.length,
+        equipes: equipes.length,
+        competicoes: competicoes.length,
+        inscricoes: log.filter(l => l.acao === 'INSCRICAO_CRIADA').length
+      },
       atletasAtivos,
       atletasInativos,
       atletasPorSexo: {
         masculino: atletasMasculino,
         feminino: atletasFeminino
       },
-      atletasPorEquipe,
+      atletas_por_equipe: atletasPorEquipe,
       maioresTotais,
       maioresTotaisMasculino,
       maioresTotaisFeminino,
