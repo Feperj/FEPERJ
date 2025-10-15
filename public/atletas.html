@@ -220,13 +220,13 @@
                     <i class="fas fa-plus mr-2"></i>
                     Novo Atleta
                 </button>
-                <button onclick="exportarCSV()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors">
-                    <i class="fas fa-download mr-2"></i>
-                    Exportar CSV
+                <button onclick="exportarExcel()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-file-excel mr-2"></i>
+                    Exportar Excel
                 </button>
-                <button onclick="importarCSV()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors">
-                    <i class="fas fa-upload mr-2"></i>
-                    Importar CSV
+                <button onclick="importarExcel()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-file-excel mr-2"></i>
+                    Importar Excel
                 </button>
             </div>
             
@@ -406,6 +406,9 @@
             </form>
         </div>
     </main>
+
+    <!-- Input oculto para importação de Excel -->
+    <input type="file" id="arquivoExcel" accept=".xlsx,.xls" style="display: none;" onchange="processarArquivoExcel(event)">
 
     <script>
         const API_BASE_URL = window.location.origin;
@@ -671,41 +674,121 @@
             await salvarAtleta(formData);
         });
         
-        // Funções de exportação/importação
-        function exportarCSV() {
-            const headers = ['Matrícula', 'Nome', 'CPF', 'Email', 'Telefone', 'Data Nascimento', 'Data Filiação', 'Sexo', 'Equipe', 'Categoria', 'Peso', 'Altura', 'Maior Total', 'Status', 'Endereço', 'Observações'];
-            
-            const csvContent = [
-                headers.join(','),
-                ...atletas.map(atleta => [
-                    atleta.matricula || '',
-                    atleta.nome,
-                    atleta.cpf,
-                    atleta.email,
-                    atleta.telefone || '',
-                    atleta.data_nascimento || '',
-                    atleta.data_filiacao || '',
-                    atleta.sexo,
-                    atleta.equipe_nome || '',
-                    atleta.categoria_nome || '',
-                    atleta.peso || '',
-                    atleta.altura || '',
-                    atleta.maior_total || '',
-                    atleta.status,
-                    atleta.endereco || '',
-                    atleta.observacoes || ''
-                ].join(','))
-            ].join('\n');
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `atletas_feperj_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+        // Funções de exportação/importação Excel
+        async function exportarExcel() {
+            try {
+                const authToken = getAuthToken();
+                
+                const response = await fetch(`${API_BASE_URL}/api/atletas/export/excel`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao exportar dados');
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `atletas_feperj_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                mostrarAlerta('success', 'Arquivo Excel exportado com sucesso!');
+                
+            } catch (error) {
+                console.error('Erro ao exportar Excel:', error);
+                mostrarAlerta('error', 'Erro ao exportar arquivo Excel');
+            }
         }
         
-        function importarCSV() {
-            alert('Funcionalidade de importação será implementada em breve!');
+        function importarExcel() {
+            document.getElementById('arquivoExcel').click();
+        }
+        
+        async function processarArquivoExcel(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+            
+            // Validar tipo de arquivo
+            const tiposPermitidos = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel'
+            ];
+            
+            if (!tiposPermitidos.includes(arquivo.type)) {
+                mostrarAlerta('error', 'Por favor, selecione um arquivo Excel (.xlsx ou .xls)');
+                return;
+            }
+            
+            // Validar tamanho do arquivo (máximo 5MB)
+            if (arquivo.size > 5 * 1024 * 1024) {
+                mostrarAlerta('error', 'Arquivo muito grande. Tamanho máximo: 5MB');
+                return;
+            }
+            
+            try {
+                const authToken = getAuthToken();
+                const formData = new FormData();
+                formData.append('arquivo', arquivo);
+                
+                mostrarAlerta('info', 'Processando arquivo Excel...');
+                
+                const response = await fetch(`${API_BASE_URL}/api/atletas/import/excel`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    mostrarAlerta('success', data.message);
+                    
+                    // Mostrar detalhes dos erros se houver
+                    if (data.dados && data.dados.detalhesErros && data.dados.detalhesErros.length > 0) {
+                        const detalhesErros = data.dados.detalhesErros.join('\n');
+                        console.warn('Erros na importação:', detalhesErros);
+                        
+                        // Criar modal com detalhes dos erros
+                        const modalErros = document.createElement('div');
+                        modalErros.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        modalErros.innerHTML = `
+                            <div class="bg-white rounded-lg p-6 max-w-2xl max-h-96 overflow-y-auto">
+                                <h3 class="text-lg font-semibold mb-4">Detalhes dos Erros na Importação</h3>
+                                <div class="text-sm text-gray-700 whitespace-pre-line">${detalhesErros}</div>
+                                <div class="mt-4 flex justify-end">
+                                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                        Fechar
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(modalErros);
+                    }
+                    
+                    // Recarregar dados
+                    carregarDados();
+                } else {
+                    mostrarAlerta('error', data.message || 'Erro ao importar arquivo');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao importar Excel:', error);
+                mostrarAlerta('error', 'Erro ao processar arquivo Excel');
+            }
+            
+            // Limpar input
+            event.target.value = '';
         }
         
         function aplicarFiltros() {

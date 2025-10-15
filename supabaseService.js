@@ -226,6 +226,24 @@ const equipeService = {
     if (error) throw error;
   },
 
+  async getByNome(nome) {
+    const { data, error } = await supabase
+      .from('equipes')
+      .select('*')
+      .eq('nome_equipe', nome)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+    
+    return {
+      ...data,
+      dataCriacao: convertTimestamp(data.data_criacao)
+    };
+  },
+
   // Função para aprovar comprovante de inscrição
   async aprovarComprovanteInscricao(equipeId, competicaoId, adminNome, observacoes) {
     try {

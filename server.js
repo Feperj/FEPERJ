@@ -10,6 +10,7 @@ const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const XLSX = require('xlsx');
 
 // Importar configuração Supabase
 const { supabase, testSupabaseConnection, criarAdminInicial, criarDadosExemplo, inicializarConfiguracoes } = require('./supabase');
@@ -410,6 +411,191 @@ app.delete('/api/atletas/:id', verificarToken, async (req, res) => {
         
     } catch (error) {
         console.error('Erro ao deletar atleta:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para exportar atletas para Excel
+app.get('/api/atletas/export/excel', verificarToken, async (req, res) => {
+    try {
+        const atletas = await atletaService.getAll();
+        
+        // Preparar dados para Excel
+        const dadosExcel = atletas.map(atleta => ({
+            'ID': atleta.id,
+            'Nome': atleta.nome,
+            'CPF': atleta.cpf,
+            'Data de Nascimento': atleta.data_nascimento ? moment(atleta.data_nascimento).format('DD/MM/YYYY') : '',
+            'Sexo': atleta.sexo,
+            'Peso': atleta.peso,
+            'Categoria': atleta.categoria,
+            'Equipe': atleta.equipe_nome || 'Sem Equipe',
+            'Status': atleta.ativo ? 'Ativo' : 'Inativo',
+            'Data de Cadastro': atleta.created_at ? moment(atleta.created_at).format('DD/MM/YYYY HH:mm') : ''
+        }));
+        
+        // Criar workbook
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+        
+        // Definir larguras das colunas
+        const colWidths = [
+            { wch: 10 }, // ID
+            { wch: 30 }, // Nome
+            { wch: 15 }, // CPF
+            { wch: 15 }, // Data de Nascimento
+            { wch: 10 }, // Sexo
+            { wch: 10 }, // Peso
+            { wch: 15 }, // Categoria
+            { wch: 25 }, // Equipe
+            { wch: 10 }, // Status
+            { wch: 20 }  // Data de Cadastro
+        ];
+        worksheet['!cols'] = colWidths;
+        
+        // Adicionar worksheet ao workbook
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Atletas');
+        
+        // Gerar buffer do Excel
+        const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'EXPORT_ATLETAS_EXCEL',
+            detalhes: `Exportação de ${atletas.length} atletas para Excel`,
+            tipo_usuario: req.user.tipo
+        });
+        
+        // Configurar headers para download
+        const fileName = `atletas_feperj_${moment().format('YYYY-MM-DD_HH-mm-ss')}.xlsx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.setHeader('Content-Length', excelBuffer.length);
+        
+        res.send(excelBuffer);
+        
+    } catch (error) {
+        console.error('Erro ao exportar atletas para Excel:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para importar atletas do Excel
+app.post('/api/atletas/import/excel', verificarToken, upload.single('arquivo'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Nenhum arquivo foi enviado'
+            });
+        }
+        
+        // Ler arquivo Excel
+        const workbook = XLSX.readFile(req.file.path);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const dados = XLSX.utils.sheet_to_json(worksheet);
+        
+        if (dados.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Arquivo Excel está vazio'
+            });
+        }
+        
+        let sucessos = 0;
+        let erros = 0;
+        const detalhesErros = [];
+        
+        // Processar cada linha
+        for (let i = 0; i < dados.length; i++) {
+            const linha = dados[i];
+            
+            try {
+                // Validar campos obrigatórios
+                if (!linha.Nome || !linha.CPF) {
+                    erros++;
+                    detalhesErros.push(`Linha ${i + 2}: Nome e CPF são obrigatórios`);
+                    continue;
+                }
+                
+                // Limpar CPF
+                const cpfLimpo = linha.CPF.toString().replace(/\D/g, '');
+                
+                // Verificar se atleta já existe
+                const atletaExistente = await atletaService.getByCpf(cpfLimpo);
+                
+                if (atletaExistente) {
+                    erros++;
+                    detalhesErros.push(`Linha ${i + 2}: Atleta com CPF ${cpfLimpo} já existe`);
+                    continue;
+                }
+                
+                // Preparar dados do atleta
+                const dadosAtleta = {
+                    nome: linha.Nome.toString().trim(),
+                    cpf: cpfLimpo,
+                    data_nascimento: linha['Data de Nascimento'] ? moment(linha['Data de Nascimento'], 'DD/MM/YYYY').format('YYYY-MM-DD') : null,
+                    sexo: linha.Sexo ? linha.Sexo.toString().toUpperCase().substring(0, 1) : null,
+                    peso: linha.Peso ? parseFloat(linha.Peso) : null,
+                    categoria: linha.Categoria ? linha.Categoria.toString().trim() : null,
+                    ativo: linha.Status ? linha.Status.toString().toLowerCase().includes('ativo') : true
+                };
+                
+                // Buscar equipe se especificada
+                if (linha.Equipe && linha.Equipe.toString().trim() !== 'Sem Equipe') {
+                    const equipe = await equipeService.getByNome(linha.Equipe.toString().trim());
+                    if (equipe) {
+                        dadosAtleta.id_equipe = equipe.id;
+                    }
+                }
+                
+                // Criar atleta
+                await atletaService.create(dadosAtleta);
+                sucessos++;
+                
+            } catch (error) {
+                erros++;
+                detalhesErros.push(`Linha ${i + 2}: ${error.message}`);
+            }
+        }
+        
+        // Limpar arquivo temporário
+        fs.unlinkSync(req.file.path);
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'IMPORT_ATLETAS_EXCEL',
+            detalhes: `Importação Excel: ${sucessos} sucessos, ${erros} erros`,
+            tipo_usuario: req.user.tipo
+        });
+        
+        res.json({
+            success: true,
+            message: `Importação concluída: ${sucessos} atletas importados com sucesso, ${erros} erros`,
+            dados: {
+                sucessos,
+                erros,
+                detalhesErros: erros > 0 ? detalhesErros : []
+            }
+        });
+        
+    } catch (error) {
+        console.error('Erro ao importar atletas do Excel:', error);
+        
+        // Limpar arquivo temporário em caso de erro
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        
         res.status(500).json({
             success: false,
             message: 'Erro interno do servidor'
