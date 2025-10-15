@@ -166,6 +166,7 @@ const equipeService = {
     if (error) throw error;
     return (data || []).map(equipe => ({
       ...equipe,
+      nomeEquipe: equipe.nome_equipe,
       dataCriacao: convertTimestamp(equipe.data_criacao)
     }));
   },
@@ -184,6 +185,7 @@ const equipeService = {
     
     return {
       ...data,
+      nomeEquipe: data.nome_equipe,
       dataCriacao: convertTimestamp(data.data_criacao)
     };
   },
@@ -376,6 +378,7 @@ const atletaService = {
     if (error) throw error;
     return (data || []).map(atleta => ({
       ...atleta,
+      idEquipe: atleta.id_equipe,
       dataNascimento: convertTimestamp(atleta.data_nascimento),
       dataFiliacao: convertTimestamp(atleta.data_filiacao),
       dataCriacao: convertTimestamp(atleta.data_criacao)
@@ -448,6 +451,7 @@ const atletaService = {
     if (error) throw error;
     return (data || []).map(atleta => ({
       ...atleta,
+      idEquipe: atleta.id_equipe,
       dataNascimento: convertTimestamp(atleta.data_nascimento),
       dataFiliacao: convertTimestamp(atleta.data_filiacao),
       dataCriacao: convertTimestamp(atleta.data_criacao)
@@ -786,8 +790,11 @@ const logService = {
     const { data: novoLog, error } = await supabase
       .from('log_atividades')
       .insert({
-        ...log,
-        data_hora: new Date().toISOString()
+        data_hora: log.dataHora ? new Date(log.dataHora).toISOString() : new Date().toISOString(),
+        usuario: log.usuario,
+        acao: log.acao,
+        detalhes: log.detalhes,
+        tipo_usuario: log.tipoUsuario
       })
       .select()
       .single();
@@ -878,11 +885,22 @@ const dashboardService = {
 
     // Agrupar atletas por equipe
     const atletasPorEquipe = equipes.map(equipe => ({
-      equipe: equipe.nome_equipe,
-      equipe_nome: equipe.nome_equipe, // Para compatibilidade com frontend HTML
-      quantidade: atletas.filter(a => a.id_equipe === equipe.id).length,
-      count: atletas.filter(a => a.id_equipe === equipe.id).length // Para compatibilidade com frontend HTML
+      equipe: equipe.nomeEquipe,
+      equipe_nome: equipe.nomeEquipe, // Para compatibilidade com frontend HTML
+      quantidade: atletas.filter(a => a.idEquipe === equipe.id).length,
+      count: atletas.filter(a => a.idEquipe === equipe.id).length // Para compatibilidade com frontend HTML
     }));
+
+    // Adicionar atletas sem equipe
+    const atletasSemEquipe = atletas.filter(a => !a.idEquipe).length;
+    if (atletasSemEquipe > 0) {
+      atletasPorEquipe.push({
+        equipe: 'SEM EQUIPE',
+        equipe_nome: 'SEM EQUIPE',
+        quantidade: atletasSemEquipe,
+        count: atletasSemEquipe
+      });
+    }
 
     // Top 10 maiores totais
     const maioresTotais = atletas
@@ -914,8 +932,8 @@ const dashboardService = {
       }));
 
     // Calcular melhores IPF Points dos resultados importados
-    const melhoresIPFPointsMasculino = this.calcularMelhoresIPFPoints(resultadosImportados, 'M');
-    const melhoresIPFPointsFeminino = this.calcularMelhoresIPFPoints(resultadosImportados, 'F');
+    const melhoresIPFPointsMasculino = dashboardService.calcularMelhoresIPFPoints(resultadosImportados, 'M');
+    const melhoresIPFPointsFeminino = dashboardService.calcularMelhoresIPFPoints(resultadosImportados, 'F');
 
     return {
       totais: {

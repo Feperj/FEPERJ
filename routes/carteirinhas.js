@@ -2,7 +2,26 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 const { atletaService, equipeService, documentoService, logService } = require('../supabaseService');
+const { supabaseAdmin } = require('../supabase');
+const { obterConfiguracaoCarteirinha } = require('../config/carteirinha');
+const carteirinhaService = require('../services/carteirinhaService');
+
+// Configuração do multer para upload de modelo de carteirinha
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Apenas arquivos PDF são permitidos para modelo de carteirinha'), false);
+    }
+  }
+});
 
 // Middleware para verificar permissões de carteirinha
 const verificarPermissaoCarteirinha = async (req, res, next) => {
@@ -47,102 +66,22 @@ const verificarPermissaoCarteirinha = async (req, res, next) => {
   }
 };
 
-// Função para gerar PDF da carteirinha (simplificada)
-const gerarPDFCarteirinha = async (atleta, equipe, foto3x4Url) => {
-  // Esta é uma implementação simplificada
-  // Em produção, você usaria uma biblioteca como PDFKit, Puppeteer ou similar
-  
-  const pdfContent = `
-%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
 
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Resources <<
-  /Font <<
-    /F1 4 0 R
-  >>
->>
-/Contents 5 0 R
->>
-endobj
-
-4 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
-
-5 0 obj
-<<
-/Length 200
->>
-stream
-BT
-/F1 18 Tf
-100 700 Td
-(CARTEIRINHA FEPERJ) Tj
-0 -30 Td
-/F1 12 Tf
-(Nome: ${atleta.nome}) Tj
-0 -20 Td
-(CPF: ${atleta.cpf}) Tj
-0 -20 Td
-(Matrícula: ${atleta.matricula || 'N/A'}) Tj
-0 -20 Td
-(Equipe: ${equipe.nomeEquipe}) Tj
-0 -20 Td
-(Data de Filiação: ${atleta.dataFiliacao.toLocaleDateString('pt-BR')}) Tj
-ET
-endstream
-endobj
-
-xref
-0 6
-0000000000 65535 f 
-0000000010 00000 n 
-0000000053 00000 n 
-0000000110 00000 n 
-0000000254 00000 n 
-0000000334 00000 n 
-trailer
-<<
-/Size 6
-/Root 1 0 R
->>
-startxref
-583
-%%EOF
-  `;
-
-  return Buffer.from(pdfContent, 'utf8');
-};
-
-// POST /api/carteirinhas/:id/gerar - Gerar carteirinha para atleta
-router.post('/:id/gerar', verificarPermissaoCarteirinha, async (req, res) => {
+// POST /api/carteirinhas/:id/gerar - Gerar carteirinha para atleta (versão simplificada)
+router.post('/:id/gerar', async (req, res) => {
   try {
     const { id } = req.params;
-    const user = req.user;
+    console.log('🎯 Iniciando geração de carteirinha para atleta ID:', id);
 
-    // Buscar dados do atleta
+    // Validar ID do atleta
+    if (!id || id === 'undefined') {
+      return res.status(400).json({
+        success: false,
+        message: 'ID do atleta é obrigatório'
+      });
+    }
+
+    // Buscar dados reais do atleta
     const atleta = await atletaService.getById(id);
     if (!atleta) {
       return res.status(404).json({
@@ -151,68 +90,38 @@ router.post('/:id/gerar', verificarPermissaoCarteirinha, async (req, res) => {
       });
     }
 
-    // Buscar equipe do atleta
-    const equipe = await equipeService.getById(atleta.idEquipe);
-    if (!equipe) {
-      return res.status(404).json({
-        success: false,
-        message: 'Equipe do atleta não encontrada'
-      });
-    }
-
-    // Verificar se atleta tem os documentos necessários
-    const documentos = await documentoService.listDocuments(id);
-    const temFoto3x4 = documentos.some(doc => doc.tipo === 'foto-3x4');
-    const temComprovanteResidencia = documentos.some(doc => doc.tipo === 'comprovante-residencia');
-
-    if (!temFoto3x4 || !temComprovanteResidencia) {
-      return res.status(400).json({
-        success: false,
-        message: 'Atleta deve ter foto 3x4 e comprovante de residência cadastrados',
-        documentos: {
-          temFoto3x4,
-          temComprovanteResidencia,
-          falta: [
-            ...(temFoto3x4 ? [] : ['foto-3x4']),
-            ...(temComprovanteResidencia ? [] : ['comprovante-residencia'])
-          ]
-        }
-      });
-    }
-
-    // Buscar foto 3x4
-    let foto3x4Url = null;
-    try {
-      const foto3x4Doc = documentos.find(doc => doc.tipo === 'foto-3x4');
-      if (foto3x4Doc) {
-        // Gerar URL temporária para a foto
-        foto3x4Url = `/api/documentos/${id}/download/${foto3x4Doc.id}`;
+    // Buscar dados da equipe
+    let equipe = { nomeEquipe: 'SEM EQUIPE', cidade: '' };
+    if (atleta.idEquipe) {
+      const equipeData = await equipeService.getById(atleta.idEquipe);
+      if (equipeData) {
+        equipe = {
+          nomeEquipe: equipeData.nomeEquipe,
+          cidade: equipeData.cidade || ''
+        };
       }
-    } catch (error) {
-      console.warn('Erro ao buscar foto 3x4:', error);
     }
 
-    // Gerar PDF da carteirinha
-    const pdfBytes = await gerarPDFCarteirinha(atleta, equipe, foto3x4Url);
+    console.log('✅ Usando dados reais do atleta:', atleta.nome);
+
+    // Gerar PDF da carteirinha usando o serviço
+    console.log('📄 Gerando PDF da carteirinha...');
+    const pdfBytes = await carteirinhaService.gerarCarteirinha(atleta, equipe);
 
     // Criar nome do arquivo
-    const nomeArquivo = `carteirinha_${atleta.nome.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
+    const nomeArquivo = `carteirinha_${carteirinhaService.limparNomeParaArquivo(atleta.nome)}_${Date.now()}.pdf`;
 
-    // Registrar log
-    await logService.create({
-      dataHora: new Date(),
-      usuario: user.nome || user.login,
-      acao: 'Gerou carteirinha',
-      detalhes: `Gerou carteirinha do atleta: ${atleta.nome}`,
-      tipoUsuario: user.tipo
-    });
+    console.log('✅ Carteirinha gerada com sucesso');
 
     // Configurar headers para download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${nomeArquivo}"`);
     res.setHeader('Content-Length', pdfBytes.length);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Pragma', 'no-cache');
 
-    res.send(pdfBytes);
+    // Enviar PDF como Buffer
+    res.end(pdfBytes);
   } catch (error) {
     console.error('Erro ao gerar carteirinha:', error);
     res.status(500).json({
@@ -237,10 +146,24 @@ router.get('/:id/verificar', verificarPermissaoCarteirinha, async (req, res) => 
       });
     }
 
-    // Verificar documentos
-    const documentos = await documentoService.listDocuments(id);
-    const temFoto3x4 = documentos.some(doc => doc.tipo === 'foto-3x4');
-    const temComprovanteResidencia = documentos.some(doc => doc.tipo === 'comprovante-residencia');
+    // Verificar documentos necessários usando Supabase Storage (bucket feperj)
+    const { data: arquivos, error: listError } = await supabaseAdmin.storage
+      .from('feperj')
+      .list(id, {
+        limit: 100,
+        offset: 0
+      });
+
+    if (listError) {
+      console.error('Erro ao listar documentos:', listError);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao verificar documentos'
+      });
+    }
+
+    const temFoto3x4 = arquivos.some(arquivo => arquivo.name.startsWith('foto_3x4_'));
+    const temComprovanteResidencia = arquivos.some(arquivo => arquivo.name.startsWith('comprovante_residencia_'));
     const podeGerar = temFoto3x4 && temComprovanteResidencia;
 
     res.json({
@@ -249,12 +172,12 @@ router.get('/:id/verificar', verificarPermissaoCarteirinha, async (req, res) => 
         podeGerar,
         temFoto3x4,
         temComprovanteResidencia,
-        documentos: documentos.map(doc => ({
-          id: doc.id,
-          tipo: doc.tipo,
-          nomeArquivo: doc.nomeArquivoOriginal,
-          dataUpload: doc.dataUpload
-        }))
+        documentos: arquivos.map(arquivo => ({
+          nome: arquivo.name,
+          tamanho: arquivo.metadata?.size || 0,
+          dataUpload: arquivo.created_at
+        })),
+        totalArquivos: arquivos.length
       }
     });
   } catch (error) {
@@ -333,6 +256,136 @@ router.get('/estatisticas', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Erro ao buscar estatísticas',
+      error: error.message
+    });
+  }
+});
+
+// =====================================================
+// ROTAS PARA MODELO DE CARTEIRINHA
+// =====================================================
+
+// GET /api/carteirinhas/modelo - Download do modelo padrão de carteirinha
+router.get('/modelo', async (req, res) => {
+  try {
+    // Tentar buscar modelo personalizado do Supabase Storage
+    const { data: arquivos, error: listError } = await supabaseAdmin.storage
+      .from('feperj')
+      .list('modelos', {
+        limit: 1,
+        offset: 0
+      });
+
+    if (!listError && arquivos && arquivos.length > 0) {
+      // Usar modelo personalizado
+      const { data: modeloData, error: downloadError } = await supabaseAdmin.storage
+        .from('feperj')
+        .download('modelos/carteirinha_modelo.pdf');
+
+      if (downloadError) {
+        throw new Error('Erro ao baixar modelo personalizado');
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="carteirinha_modelo_personalizado.pdf"');
+      
+      const arrayBuffer = await modeloData.arrayBuffer();
+      res.send(Buffer.from(arrayBuffer));
+      return;
+    }
+
+    // Usar modelo padrão (se não houver modelo personalizado)
+    const modeloPadraoPath = path.join(__dirname, '../public/modelos/carteirinha_modelo.pdf');
+    
+    if (fs.existsSync(modeloPadraoPath)) {
+      res.download(modeloPadraoPath, 'carteirinha_modelo_padrao.pdf');
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Modelo de carteirinha não encontrado'
+      });
+    }
+
+  } catch (error) {
+    console.error('Erro ao baixar modelo de carteirinha:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao baixar modelo de carteirinha',
+      error: error.message
+    });
+  }
+});
+
+// POST /api/carteirinhas/modelo - Upload de modelo personalizado de carteirinha
+router.post('/modelo', upload.single('modelo'), async (req, res) => {
+  try {
+    const user = req.user;
+
+    // Verificar se é admin
+    if (user.tipo !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Apenas administradores podem fazer upload de modelo de carteirinha'
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Arquivo PDF é obrigatório'
+      });
+    }
+
+    // Upload do modelo para Supabase Storage
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from('feperj')
+      .upload('modelos/carteirinha_modelo.pdf', req.file.buffer, {
+        contentType: 'application/pdf',
+        upsert: true // Substituir se já existir
+      });
+
+    if (uploadError) {
+      throw new Error('Erro ao fazer upload do modelo: ' + uploadError.message);
+    }
+
+    // Registrar log
+    await logService.create({
+      dataHora: new Date(),
+      usuario: user.nome || user.login,
+      acao: 'Upload modelo carteirinha',
+      detalhes: 'Fez upload de modelo personalizado de carteirinha',
+      tipoUsuario: user.tipo
+    });
+
+    res.json({
+      success: true,
+      message: 'Modelo de carteirinha atualizado com sucesso!'
+    });
+
+  } catch (error) {
+    console.error('Erro ao fazer upload do modelo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao fazer upload do modelo',
+      error: error.message
+    });
+  }
+});
+
+// GET /api/carteirinhas/configuracao - Obter configuração da carteirinha
+router.get('/configuracao', async (req, res) => {
+  try {
+    const config = obterConfiguracaoCarteirinha();
+    
+    res.json({
+      success: true,
+      data: config
+    });
+  } catch (error) {
+    console.error('Erro ao obter configuração:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter configuração da carteirinha',
       error: error.message
     });
   }

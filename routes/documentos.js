@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { atletaService, documentoService, logService } = require('../supabaseService');
+const { supabaseAdmin } = require('../supabase');
 
 // Configuração do Multer para upload de documentos
 const storage = multer.diskStorage({
@@ -279,15 +280,30 @@ router.delete('/:id/:documentoId', verificarPermissaoDocumento, async (req, res)
 router.get('/:id/verificar', verificarPermissaoDocumento, async (req, res) => {
   try {
     const { id } = req.params;
-    const documentos = await documentoService.listDocuments(id);
+    
+    // Usar a API de documentos-storage para verificar documentos
+    const { data: arquivos, error } = await supabaseAdmin.storage
+      .from('feperj')
+      .list(id, {
+        limit: 100,
+        offset: 0
+      });
+
+    if (error) {
+      console.error('Erro ao listar documentos do Supabase Storage:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao verificar documentos'
+      });
+    }
 
     // Verificar quais documentos existem
     const status = {
-      temMatricula: documentos.some(doc => doc.tipo === 'matricula'),
-      temFoto3x4: documentos.some(doc => doc.tipo === 'foto-3x4'),
-      temComprovanteResidencia: documentos.some(doc => doc.tipo === 'comprovante-residencia'),
+      temMatricula: false, // Matrícula é gerada automaticamente
+      temFoto3x4: arquivos.some(arquivo => arquivo.name.startsWith('foto_3x4_')),
+      temComprovanteResidencia: arquivos.some(arquivo => arquivo.name.startsWith('comprovante_residencia_')),
       podeGerarCarteirinha: false,
-      documentos: documentos
+      documentos: arquivos
     };
 
     // Pode gerar carteirinha se tem foto 3x4 e comprovante de residência

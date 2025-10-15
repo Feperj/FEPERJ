@@ -150,6 +150,139 @@
             overflow-y: auto;
         }
         
+        /* Estilos para upload de documentos */
+        .upload-section {
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+        }
+        
+        .upload-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .upload-success {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+        
+        .documento-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: #f9fafb;
+        }
+        
+        .documento-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .documento-icone {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 6px;
+            margin-right: 1rem;
+        }
+        
+        .documento-detalhes h4 {
+            margin: 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .documento-detalhes p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        .documento-acoes {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-documento {
+            padding: 0.375rem 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-visualizar {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-visualizar:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-download {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background-color: #059669;
+        }
+        
+        .btn-excluir {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-excluir:hover {
+            background-color: #dc2626;
+        }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -545,6 +678,14 @@
                 <i class="fas fa-download"></i>
                 Template Excel
             </button>
+            <button onclick="baixarModeloCarteirinha()" class="btn btn-warning" id="btnModelo" style="display: none;">
+                <i class="fas fa-id-card"></i>
+                Modelo Carteirinha
+            </button>
+            <button onclick="uploadModeloCarteirinha()" class="btn btn-secondary" id="btnUploadModelo" style="display: none;">
+                <i class="fas fa-upload"></i>
+                Upload Modelo
+            </button>
         </div>
         
         <!-- Filtros e Busca -->
@@ -723,7 +864,7 @@
 
     <!-- Modal de Documentos -->
     <div id="modalDocumentos" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 1000px;">
             <div class="modal-header">
                 <h3 class="modal-title">Documentos do Atleta</h3>
                 <button onclick="fecharModalDocumentos()" class="close-btn">
@@ -731,8 +872,141 @@
                 </button>
             </div>
             
-            <div id="documentosContent">
+            <div class="p-6">
+                <!-- Seção de Upload -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">📁 Enviar Documentos</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Comprovante de Residência -->
+                        <div class="upload-section">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                🏠 Comprovante de Residência
+                            </label>
+                            <div class="upload-area" data-tipo="comprovante_residencia">
+                                <input type="file" id="comprovante_residencia" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                <div class="upload-placeholder" onclick="selecionarArquivo('comprovante_residencia')">
+                                    <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500">Clique para selecionar arquivo</p>
+                                    <p class="text-xs text-gray-400">JPG, PNG, PDF (máx. 10MB)</p>
+                                </div>
+                                <div class="upload-progress" style="display: none;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"></div>
+                                    </div>
+                                    <p class="text-sm text-blue-600">Enviando...</p>
+                                </div>
+                                <div class="upload-success" style="display: none;">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                    <p class="text-sm text-green-600">Enviado com sucesso!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Foto 3x4 -->
+                        <div class="upload-section">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                📷 Foto 3x4
+                            </label>
+                            <div class="upload-area" data-tipo="foto_3x4">
+                                <input type="file" id="foto_3x4" accept=".jpg,.jpeg,.png" style="display: none;">
+                                <div class="upload-placeholder" onclick="selecionarArquivo('foto_3x4')">
+                                    <i class="fas fa-camera text-2xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500">Clique para selecionar foto</p>
+                                    <p class="text-xs text-gray-400">JPG, PNG (máx. 10MB)</p>
+                                </div>
+                                <div class="upload-progress" style="display: none;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"></div>
+                                    </div>
+                                    <p class="text-sm text-blue-600">Enviando...</p>
+                                </div>
+                                <div class="upload-success" style="display: none;">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                    <p class="text-sm text-green-600">Enviado com sucesso!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Certificado ADEL -->
+                        <div class="upload-section">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                🏆 Certificado ADEL
+                            </label>
+                            <div class="upload-area" data-tipo="certificado_adel">
+                                <input type="file" id="certificado_adel" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                <div class="upload-placeholder" onclick="selecionarArquivo('certificado_adel')">
+                                    <i class="fas fa-certificate text-2xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500">Clique para selecionar certificado</p>
+                                    <p class="text-xs text-gray-400">JPG, PNG, PDF (máx. 10MB)</p>
+                                </div>
+                                <div class="upload-progress" style="display: none;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"></div>
+                                    </div>
+                                    <p class="text-sm text-blue-600">Enviando...</p>
+                                </div>
+                                <div class="upload-success" style="display: none;">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                    <p class="text-sm text-green-600">Enviado com sucesso!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Termo de Imagem -->
+                        <div class="upload-section">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                📄 Termo de Imagem
+                            </label>
+                            <div class="upload-area" data-tipo="termo_imagem">
+                                <input type="file" id="termo_imagem" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                <div class="upload-placeholder" onclick="selecionarArquivo('termo_imagem')">
+                                    <i class="fas fa-file-signature text-2xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500">Clique para selecionar termo</p>
+                                    <p class="text-xs text-gray-400">JPG, PNG, PDF (máx. 10MB)</p>
+                                </div>
+                                <div class="upload-progress" style="display: none;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"></div>
+                                    </div>
+                                    <p class="text-sm text-blue-600">Enviando...</p>
+                                </div>
+                                <div class="upload-success" style="display: none;">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                    <p class="text-sm text-green-600">Enviado com sucesso!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção de Documentos Enviados -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">📋 Documentos Enviados</h4>
+                    <div id="documentosLista" class="space-y-3">
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p>Carregando documentos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização -->
+    <div id="modalVisualizacao" class="modal">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
+            <div class="modal-header">
+                <h3 class="modal-title">Visualizar Documento</h3>
+                <button onclick="fecharModalVisualizacao()" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div id="visualizacaoContent" class="text-center">
                 <!-- Conteúdo será carregado dinamicamente -->
+                </div>
             </div>
         </div>
     </div>
@@ -755,6 +1029,9 @@
 
     <!-- Input oculto para importação de Excel -->
     <input type="file" id="arquivoExcel" accept=".xlsx,.xls" style="display: none;" onchange="processarArquivoExcel(event)">
+    
+    <!-- Input oculto para upload de modelo de carteirinha -->
+    <input type="file" id="arquivoModelo" accept=".pdf" style="display: none;" onchange="processarModeloCarteirinha(event)">
 
     <script>
         const API_BASE_URL = window.location.origin;
@@ -768,7 +1045,9 @@
         
         // Função para obter token atual do localStorage
         function getAuthToken() {
-            return localStorage.getItem('authToken');
+            const token = localStorage.getItem('authToken');
+            console.log('🔑 Token obtido:', token ? 'Presente' : 'Ausente');
+            return token;
         }
         
         // Verificar autenticação
@@ -793,6 +1072,8 @@
                     document.getElementById('btnExportar').style.display = 'inline-flex';
                     document.getElementById('btnImportar').style.display = 'inline-flex';
                     document.getElementById('btnTemplate').style.display = 'inline-flex';
+                    document.getElementById('btnModelo').style.display = 'inline-flex';
+                    document.getElementById('btnUploadModelo').style.display = 'inline-flex';
                     document.getElementById('statusGroup').style.display = 'block';
                 } else {
                     document.getElementById('selectEquipe').disabled = true;
@@ -1141,6 +1422,37 @@
         // Gerar carteirinha
         async function gerarCarteirinha(atletaId) {
             try {
+                // Verificação de segurança para usuários não-admin
+                if (userInfo?.tipo !== 'admin') {
+                    const atleta = atletas.find(a => a.id === atletaId);
+                    if (atleta && atleta.idEquipe !== userInfo?.idEquipe) {
+                        mostrarToast('Você só pode gerar carteirinhas de atletas da sua equipe', 'error');
+                        return;
+                    }
+                }
+
+                // Verificar se o atleta tem os documentos necessários
+                if (!atletasComDocumentos.has(atletaId)) {
+                    mostrarToast('Atleta deve ter foto 3x4 e comprovante de residência cadastrados', 'error');
+                    return;
+                }
+
+                // Buscar equipe do atleta
+                const atleta = atletas.find(a => a.id === atletaId);
+                if (!atleta) {
+                    mostrarToast('Atleta não encontrado', 'error');
+                    return;
+                }
+
+                const equipe = equipes.find(e => e.id === atleta.idEquipe);
+                if (!equipe) {
+                    mostrarToast('Equipe do atleta não encontrada', 'error');
+                    return;
+                }
+
+                console.log('🎫 Gerando carteirinha para:', atleta.nome);
+
+                // Gerar carteirinha via API
                 const response = await fetch(`${API_BASE_URL}/api/carteirinhas/${atletaId}/gerar`, {
                     method: 'POST',
                     headers: {
@@ -1154,7 +1466,6 @@
                     const link = document.createElement('a');
                     link.href = url;
                     
-                    const atleta = atletas.find(a => a.id === atletaId);
                     const nomeArquivo = `carteirinha_${atleta.nome.replace(/\s+/g, '_')}.pdf`;
                     link.download = nomeArquivo;
                     
@@ -1163,100 +1474,371 @@
                     document.body.removeChild(link);
                     window.URL.revokeObjectURL(url);
                     
-                    mostrarToast('Carteirinha gerada com sucesso!', 'success');
+                    mostrarToast(`Carteirinha de ${atleta.nome} gerada com sucesso!`, 'success');
+                    
+                    // Registrar log (se API estiver disponível)
+                    try {
+                        await apiRequest('/api/logs', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                dataHora: new Date().toISOString(),
+                                usuario: userInfo?.nome || userInfo?.login || 'Sistema',
+                                acao: 'Gerou carteirinha',
+                                detalhes: `Gerou carteirinha do atleta: ${atleta.nome}`,
+                                tipoUsuario: userInfo?.tipo || 'usuario'
+                            })
+                        });
+                    } catch (logError) {
+                        console.warn('Erro ao registrar log de geração de carteirinha:', logError);
+                    }
                 } else {
                     const errorData = await response.json();
                     mostrarToast(errorData.message || 'Erro ao gerar carteirinha', 'error');
                 }
             } catch (error) {
                 console.error('Erro ao gerar carteirinha:', error);
-                mostrarToast('Erro ao gerar carteirinha', 'error');
+                mostrarToast(`Erro ao gerar carteirinha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 'error');
             }
         }
         
+        // Variável para armazenar o ID do atleta atual
+        let atletaIdAtual = null;
+        
         // Abrir modal de documentos
         async function abrirModalDocumentos(atletaId) {
-            try {
-                const response = await apiRequest(`/api/documentos/${atletaId}/verificar`);
-                if (response && response.success) {
-                    const atleta = atletas.find(a => a.id === atletaId);
-                    const status = response.data;
-                    
-                    document.getElementById('documentosContent').innerHTML = `
-                        <div class="mb-4">
-                            <h4 class="text-lg font-semibold mb-2">Documentos de ${atleta.nome}</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div class="p-4 border rounded-lg">
-                                    <h5 class="font-medium mb-2">Status dos Documentos</h5>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-id-card ${status.temMatricula ? 'text-green-500' : 'text-gray-400'}"></i>
-                                            <span>Matrícula: ${status.temMatricula ? 'Enviada' : 'Pendente'}</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-camera ${status.temFoto3x4 ? 'text-green-500' : 'text-gray-400'}"></i>
-                                            <span>Foto 3x4: ${status.temFoto3x4 ? 'Enviada' : 'Pendente'}</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-home ${status.temComprovanteResidencia ? 'text-green-500' : 'text-gray-400'}"></i>
-                                            <span>Comprovante de Residência: ${status.temComprovanteResidencia ? 'Enviado' : 'Pendente'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="p-4 border rounded-lg">
-                                    <h5 class="font-medium mb-2">Carteirinha</h5>
-                                    <p class="text-sm text-gray-600 mb-3">
-                                        ${status.podeGerarCarteirinha ? 
-                                            'Todos os documentos necessários foram enviados. A carteirinha pode ser gerada.' :
-                                            'Para gerar a carteirinha, é necessário enviar foto 3x4 e comprovante de residência.'
-                                        }
-                                    </p>
-                                    ${status.podeGerarCarteirinha ? 
-                                        `<button onclick="gerarCarteirinha('${atletaId}')" class="btn btn-success btn-sm">
-                                            <i class="fas fa-id-card"></i>
-                                            Gerar Carteirinha
-                                        </button>` :
-                                        '<span class="badge badge-warning">Documentos incompletos</span>'
-                                    }
-                                </div>
-                            </div>
-                            
-                            <div class="border-t pt-4">
-                                <h5 class="font-medium mb-3">Documentos Enviados</h5>
-                                ${status.documentos.length > 0 ? 
-                                    `<div class="space-y-2">
-                                        ${status.documentos.map(doc => `
-                                            <div class="flex items-center justify-between p-2 border rounded">
-                                                <div class="flex items-center gap-2">
-                                                    <i class="fas fa-file"></i>
-                                                    <span>${doc.nomeArquivo}</span>
-                                                    <span class="badge badge-info">${doc.tipo}</span>
-                                                </div>
-                                                <button onclick="baixarDocumento('${atletaId}', '${doc.id}')" class="btn btn-info btn-sm">
-                                                    <i class="fas fa-download"></i>
-                                                    Baixar
-                                                </button>
-                                            </div>
-                                        `).join('')}
-                                    </div>` :
-                                    '<p class="text-gray-500">Nenhum documento enviado</p>'
-                                }
-                            </div>
-                        </div>
-                    `;
-                    
-                    document.getElementById('modalDocumentos').style.display = 'block';
-                } else {
-                    mostrarToast('Erro ao carregar documentos', 'error');
-                }
-            } catch (error) {
-                console.error('Erro ao abrir modal de documentos:', error);
-                mostrarToast('Erro ao carregar documentos', 'error');
-            }
+            atletaIdAtual = atletaId;
+            document.getElementById('modalDocumentos').style.display = 'block';
+            await carregarDocumentos(atletaId);
         }
         
         function fecharModalDocumentos() {
             document.getElementById('modalDocumentos').style.display = 'none';
+            atletaIdAtual = null;
+        }
+
+        // Fechar modal de visualização
+        function fecharModalVisualizacao() {
+            document.getElementById('modalVisualizacao').style.display = 'none';
+        }
+
+        // Carregar documentos do atleta
+        async function carregarDocumentos(atletaId) {
+            try {
+                const response = await apiRequest(`/api/documentos-storage/list/${atletaId}`);
+                if (response && response.success) {
+                    exibirDocumentos(response.data);
+                } else {
+                    document.getElementById('documentosLista').innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                            <p>Erro ao carregar documentos</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar documentos:', error);
+                document.getElementById('documentosLista').innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <p>Erro ao carregar documentos</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Exibir lista de documentos
+        function exibirDocumentos(documentos) {
+            const container = document.getElementById('documentosLista');
+            
+            if (documentos.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-folder-open text-2xl mb-2"></i>
+                        <p>Nenhum documento enviado</p>
+                                        </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = documentos.map(doc => `
+                <div class="documento-item">
+                    <div class="documento-info">
+                        <div class="documento-icone">
+                            <i class="fas ${getIconeDocumento(doc.tipo)}"></i>
+                                        </div>
+                        <div class="documento-detalhes">
+                            <h4>${doc.tipoNome}</h4>
+                            <p>${formatarTamanho(doc.tamanho)} • ${formatarData(doc.dataUpload)}</p>
+                                        </div>
+                                    </div>
+                    <div class="documento-acoes">
+                        <button class="btn-documento btn-visualizar" onclick="visualizarDocumento('${atletaIdAtual}', '${doc.nome}')">
+                            <i class="fas fa-eye"></i> Visualizar
+                        </button>
+                        <button class="btn-documento btn-download" onclick="baixarDocumento('${atletaIdAtual}', '${doc.nome}')">
+                            <i class="fas fa-download"></i> Baixar
+                        </button>
+                        <button class="btn-documento btn-excluir" onclick="excluirDocumento('${atletaIdAtual}', '${doc.nome}')">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                                </div>
+                </div>
+            `).join('');
+        }
+
+        // Obter ícone do tipo de documento
+        function getIconeDocumento(tipo) {
+            const icones = {
+                'comprovante_residencia': 'fa-home',
+                'foto_3x4': 'fa-camera',
+                'certificado_adel': 'fa-certificate',
+                'termo_imagem': 'fa-file-signature'
+            };
+            return icones[tipo] || 'fa-file';
+        }
+
+        // Selecionar arquivo para upload
+        function selecionarArquivo(tipoDocumento) {
+            const input = document.getElementById(tipoDocumento);
+            input.click();
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    enviarDocumento(tipoDocumento, file);
+                }
+            };
+        }
+
+        // Enviar documento
+        async function enviarDocumento(tipoDocumento, arquivo) {
+            const uploadArea = document.querySelector(`[data-tipo="${tipoDocumento}"]`);
+            const placeholder = uploadArea.querySelector('.upload-placeholder');
+            const progress = uploadArea.querySelector('.upload-progress');
+            const success = uploadArea.querySelector('.upload-success');
+            const progressFill = progress.querySelector('.progress-fill');
+
+            try {
+                // Mostrar progresso
+                placeholder.style.display = 'none';
+                progress.style.display = 'block';
+                progressFill.style.width = '0%';
+
+                // Criar FormData
+                const formData = new FormData();
+                formData.append('documento', arquivo);
+                formData.append('atletaId', atletaIdAtual);
+                formData.append('tipoDocumento', tipoDocumento);
+
+                // Simular progresso
+                let progresso = 0;
+                const intervalo = setInterval(() => {
+                    progresso += Math.random() * 30;
+                    if (progresso > 90) progresso = 90;
+                    progressFill.style.width = progresso + '%';
+                }, 200);
+
+                // Fazer upload
+                console.log('📤 Enviando arquivo:', {
+                    url: `${API_BASE_URL}/api/documentos-storage/upload`,
+                    atletaId: atletaIdAtual,
+                    tipoDocumento: tipoDocumento,
+                    arquivo: arquivo.name,
+                    token: getAuthToken() ? 'Presente' : 'Ausente'
+                });
+
+                const response = await fetch(`${API_BASE_URL}/api/documentos-storage/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: formData
+                });
+
+                clearInterval(intervalo);
+                progressFill.style.width = '100%';
+
+                console.log('📡 Resposta recebida:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        // Mostrar sucesso
+                        setTimeout(() => {
+                            progress.style.display = 'none';
+                            success.style.display = 'block';
+                            
+                            // Recarregar documentos
+                            carregarDocumentos(atletaIdAtual);
+                            
+                            // Resetar após 2 segundos
+                            setTimeout(() => {
+                                success.style.display = 'none';
+                                placeholder.style.display = 'block';
+                                input.value = '';
+                            }, 2000);
+                        }, 500);
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } else {
+                    // Tentar obter detalhes do erro
+                    let errorMessage = 'Erro no upload';
+                    try {
+                        const errorData = await response.text();
+                        console.log('❌ Detalhes do erro:', errorData);
+                        try {
+                            const errorJson = JSON.parse(errorData);
+                            errorMessage = errorJson.message || errorMessage;
+                        } catch (e) {
+                            errorMessage = errorData || errorMessage;
+                        }
+                    } catch (e) {
+                        console.log('❌ Não foi possível obter detalhes do erro');
+                    }
+                    throw new Error(errorMessage);
+                }
+
+            } catch (error) {
+                console.error('Erro no upload:', error);
+                progress.style.display = 'none';
+                placeholder.style.display = 'block';
+                mostrarToast('Erro ao enviar documento: ' + error.message, 'error');
+            }
+        }
+
+        // Visualizar documento
+        async function visualizarDocumento(atletaId, nomeArquivo) {
+            try {
+                console.log('👁️ Gerando URL temporária para visualização...');
+                
+                // Obter URL temporária da API
+                const response = await apiRequest(`/api/documentos-storage/view/${atletaId}/${nomeArquivo}`);
+                
+                if (!response || !response.success) {
+                    throw new Error(response?.message || 'Erro ao gerar URL de visualização');
+                }
+                
+                const { viewUrl, contentType } = response.data;
+                const container = document.getElementById('visualizacaoContent');
+                
+                console.log('📄 URL temporária gerada:', viewUrl);
+                
+                if (contentType.startsWith('image/')) {
+                    // Imagem
+                    container.innerHTML = `
+                        <img src="${viewUrl}" 
+                             alt="${nomeArquivo}" 
+                             style="max-width: 100%; max-height: 80vh; object-fit: contain;">
+                    `;
+                } else if (contentType === 'application/pdf') {
+                    // PDF
+                    container.innerHTML = `
+                        <iframe src="${viewUrl}" 
+                                width="100%" 
+                                height="80vh" 
+                                style="border: none;">
+                        </iframe>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-file text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-600">Visualização não disponível para este tipo de arquivo</p>
+                            <button onclick="baixarDocumento('${atletaId}', '${nomeArquivo}')" 
+                                    class="btn btn-primary mt-4">
+                                <i class="fas fa-download"></i> Baixar Arquivo
+                                                </button>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('modalVisualizacao').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Erro ao visualizar documento:', error);
+                mostrarToast('Erro ao visualizar documento: ' + error.message, 'error');
+            }
+        }
+
+        // Baixar documento
+        async function baixarDocumento(atletaId, nomeArquivo) {
+            try {
+                console.log('⬇️ Gerando URL temporária para download...');
+                
+                // Obter URL temporária da API
+                const response = await apiRequest(`/api/documentos-storage/download/${atletaId}/${nomeArquivo}`);
+                
+                if (!response || !response.success) {
+                    throw new Error(response?.message || 'Erro ao gerar URL de download');
+                }
+                
+                const { downloadUrl, fileName } = response.data;
+                
+                console.log('📥 URL temporária gerada:', downloadUrl);
+                
+                // Criar link temporário para download
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = fileName;
+                link.style.display = 'none';
+                link.target = '_blank';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                console.log('✅ Download iniciado');
+                
+            } catch (error) {
+                console.error('Erro ao baixar documento:', error);
+                mostrarToast('Erro ao baixar documento: ' + error.message, 'error');
+            }
+        }
+
+        // Excluir documento
+        async function excluirDocumento(atletaId, nomeArquivo) {
+            if (!confirm('Tem certeza que deseja excluir este documento?')) {
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/api/documentos-storage/${atletaId}/${nomeArquivo}`, {
+                    method: 'DELETE'
+                });
+
+                if (response && response.success) {
+                    mostrarToast('Documento excluído com sucesso', 'success');
+                    await carregarDocumentos(atletaId);
+                } else {
+                    throw new Error(response?.message || 'Erro ao excluir documento');
+                }
+
+            } catch (error) {
+                console.error('Erro ao excluir documento:', error);
+                mostrarToast('Erro ao excluir documento: ' + error.message, 'error');
+            }
+        }
+
+        // Funções auxiliares
+        function formatarTamanho(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatarData(dataString) {
+            const data = new Date(dataString);
+            return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
         }
         
         // Abrir modal de matrícula
@@ -1299,33 +1881,6 @@
             window.location.href = `atleta-detalhes.html?id=${atletaId}`;
         }
         
-        // Baixar documento
-        async function baixarDocumento(atletaId, documentoId) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/documentos/${atletaId}/download/${documentoId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `documento_${documentoId}`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                } else {
-                    mostrarToast('Erro ao baixar documento', 'error');
-                }
-            } catch (error) {
-                console.error('Erro ao baixar documento:', error);
-                mostrarToast('Erro ao baixar documento', 'error');
-            }
-        }
         
         // Event listeners
         document.getElementById('formAtleta').addEventListener('submit', async (e) => {
@@ -1398,6 +1953,12 @@
         // Funções de exportação/importação Excel
         async function exportarExcel() {
             try {
+                // Verificar se é admin
+                if (userInfo?.tipo !== 'admin') {
+                    mostrarToast('Apenas administradores podem exportar dados', 'error');
+                    return;
+                }
+
                 const response = await fetch(`${API_BASE_URL}/api/exportacao/atletas/excel`, {
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}`
@@ -1415,7 +1976,23 @@
                     document.body.removeChild(link);
                     window.URL.revokeObjectURL(url);
                     
-                    mostrarToast('Lista de atletas exportada com sucesso!', 'success');
+                    mostrarToast(`Lista de ${atletas.length} atletas exportada com sucesso!`, 'success');
+                    
+                    // Registrar log (se API estiver disponível)
+                    try {
+                        await apiRequest('/api/logs', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                dataHora: new Date().toISOString(),
+                                usuario: userInfo?.nome || userInfo?.login || 'Sistema',
+                                acao: 'Exportou lista de atletas',
+                                detalhes: `Exportou ${atletas.length} atletas em Excel`,
+                                tipoUsuario: userInfo?.tipo || 'usuario'
+                            })
+                        });
+                    } catch (logError) {
+                        console.warn('Erro ao registrar log de exportação:', logError);
+                    }
                 } else {
                     mostrarToast('Erro ao exportar dados', 'error');
                 }
@@ -1456,6 +2033,88 @@
                 console.error('Erro ao baixar template:', error);
                 mostrarToast('Erro ao baixar template', 'error');
             }
+        }
+        
+        // Funções para modelo de carteirinha
+        async function baixarModeloCarteirinha() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/carteirinhas/modelo`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'carteirinha_modelo.pdf';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    
+                    mostrarToast('Modelo de carteirinha baixado com sucesso!', 'success');
+                } else {
+                    const errorData = await response.json();
+                    mostrarToast(errorData.message || 'Erro ao baixar modelo', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao baixar modelo:', error);
+                mostrarToast('Erro ao baixar modelo de carteirinha', 'error');
+            }
+        }
+        
+        function uploadModeloCarteirinha() {
+            document.getElementById('arquivoModelo').click();
+        }
+        
+        async function processarModeloCarteirinha(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+            
+            // Validar tipo de arquivo
+            if (arquivo.type !== 'application/pdf') {
+                mostrarToast('Por favor, selecione um arquivo PDF', 'error');
+                return;
+            }
+            
+            // Validar tamanho do arquivo (máximo 10MB)
+            if (arquivo.size > 10 * 1024 * 1024) {
+                mostrarToast('Arquivo muito grande. Tamanho máximo: 10MB', 'error');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('modelo', arquivo);
+                
+                mostrarToast('Enviando modelo...', 'info');
+                
+                const response = await fetch(`${API_BASE_URL}/api/carteirinhas/modelo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarToast('Modelo de carteirinha atualizado com sucesso!', 'success');
+                } else {
+                    mostrarToast(result.message || 'Erro ao fazer upload do modelo', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao fazer upload do modelo:', error);
+                mostrarToast('Erro ao fazer upload do modelo', 'error');
+            }
+            
+            // Limpar input
+            event.target.value = '';
         }
         
         async function processarArquivoExcel(event) {
@@ -1594,3 +2253,4 @@
     </script>
 </body>
 </html>
+

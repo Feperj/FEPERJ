@@ -1,0 +1,916 @@
+.lifting-table-container {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.table-header h5 {
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.lifting-table {
+  margin-bottom: 0;
+  border: 1px solid #dee2e6;
+}
+
+.lifting-table th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 1px solid #dee2e6;
+  font-weight: 600;
+  padding: 6px 8px;
+  vertical-align: middle;
+  height: 35px;
+}
+
+.lifting-table td {
+  border: 1px solid #dee2e6;
+  padding: 4px 8px;
+  vertical-align: middle;
+  height: 30px;
+}
+
+.table-header-row th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.table-row {
+  transition: all 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.current-athlete-row {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+  border-left: 4px solid #28a745;
+}
+
+.current-athlete-row:hover {
+  background: linear-gradient(135deg, #c3e6cb 0%, #b1dfbb 100%) !important;
+}
+
+.athlete-info {
+  min-width: 200px;
+}
+
+.athlete-name {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+
+.attempt-cell {
+  min-width: 120px;
+  position: relative;
+}
+
+.current-attempt {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+  border: 2px solid #ffc107;
+  font-weight: 600;
+}
+
+.attempt-weight {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.attempt-status .badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  font-weight: 500;
+}
+
+/* Células de tentativa interativas */
+.attempt-cell.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.attempt-cell.clickable:hover {
+  background-color: #e3f2fd;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+  border-color: #2196f3;
+}
+
+.attempt-cell.clickable:active {
+  transform: scale(0.98);
+  background-color: #bbdefb;
+}
+
+/* Célula selecionada */
+.attempt-cell.selected-attempt {
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) !important;
+  border: 2px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.attempt-cell.selected-attempt:hover {
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%) !important;
+  transform: scale(1.01);
+}
+
+/* Célula atual */
+.attempt-cell.current-attempt {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+  border: 2px solid #ffc107;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+}
+
+.attempt-cell.current-attempt:hover {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
+  transform: scale(1.01);
+}
+
+/* Indicador de clique */
+.click-indicator {
+  text-align: center;
+  margin-top: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.attempt-cell.clickable:hover .click-indicator {
+  opacity: 1;
+}
+
+.click-indicator small {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Novos estilos para campos de entrada direta */
+.attempt-input-container {
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+}
+
+.attempt-weight-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.attempt-weight-input .weight-input {
+  width: 80px;
+  text-align: center;
+  font-weight: 600;
+  border: 2px solid #e9ecef;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  padding: 4px 2px;
+  font-size: 12px;
+  height: 28px;
+  overflow: hidden !important;
+}
+
+.attempt-weight-input .weight-input::-webkit-outer-spin-button,
+.attempt-weight-input .weight-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.attempt-weight-input .weight-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.attempt-weight-input .weight-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.attempt-weight-input .weight-input:hover {
+  border-color: #007bff;
+}
+
+.attempt-weight-input span {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.attempt-status-selector {
+  display: flex;
+  justify-content: center;
+}
+
+.attempt-status-selector .status-select {
+  width: 100%;
+  font-size: 11px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.attempt-status-selector .status-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+  background-color: white;
+}
+
+.attempt-status-selector .status-select:hover {
+  background-color: white;
+  border-color: #007bff;
+}
+
+/* Estilos para diferentes status */
+.attempt-status-selector .status-select option[value="0"] {
+  color: #6c757d;
+}
+
+.attempt-status-selector .status-select option[value="1"] {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.attempt-status-selector .status-select option[value="2"] {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.attempt-status-selector .status-select option[value="3"] {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+.attempt-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.attempt-weight {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.status-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.attempt-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 60px;
+}
+
+.placeholder-text {
+  color: #6c757d;
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Estados das tentativas */
+.attempt-cell.clickable[title*="Clique para marcar"]:hover .placeholder-text {
+  color: #007bff;
+  font-weight: 500;
+}
+
+.attempt-cell.clickable[title*="Clique para marcar"]:hover {
+  background-color: #e3f2fd;
+  border: 1px dashed #007bff;
+}
+
+/* Tentativa selecionada no footer */
+.attempt-cell.selected-attempt {
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%) !important;
+  border: 2px solid #28a745 !important;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
+  position: relative;
+}
+
+.attempt-cell.selected-attempt::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 14px;
+  z-index: 1;
+}
+
+.attempt-cell.selected-attempt:hover {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+  transform: scale(1.02);
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+}
+
+.action-buttons .btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  min-width: 50px;
+  font-weight: 500;
+}
+
+.action-buttons .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* Tabela sem barra de rolagem - se ajusta à tela */
+.table-responsive {
+  overflow-x: visible !important;
+}
+
+.lifting-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  margin: 0 !important;
+}
+
+.lifting-table th,
+.lifting-table td {
+  padding: 2px 4px !important;
+  height: 25px !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.lifting-table th {
+  height: 30px !important;
+  padding: 4px 2px !important;
+  font-size: 9px !important;
+}
+
+/* Larguras das colunas - distribuição uniforme */
+.lifting-table th:nth-child(1),
+.lifting-table td:nth-child(1) {
+  width: 5% !important; /* # */
+}
+
+.lifting-table th:nth-child(2),
+.lifting-table td:nth-child(2) {
+  width: 25% !important; /* Atleta */
+}
+
+.lifting-table th:nth-child(3),
+.lifting-table td:nth-child(3) {
+  width: 8% !important; /* Categoria */
+}
+
+.lifting-table th:nth-child(4),
+.lifting-table td:nth-child(4) {
+  width: 6% !important; /* Peso */
+}
+
+.lifting-table th:nth-child(5),
+.lifting-table td:nth-child(5) {
+  width: 4% !important; /* Nº Lote */
+}
+
+.lifting-table th:nth-child(6),
+.lifting-table td:nth-child(6) {
+  width: 12% !important; /* Equipe */
+}
+
+.lifting-table th:nth-child(7),
+.lifting-table td:nth-child(7) {
+  width: 8% !important; /* 1ª Tentativa */
+}
+
+.lifting-table th:nth-child(8),
+.lifting-table td:nth-child(8) {
+  width: 8% !important; /* 2ª Tentativa */
+}
+
+.lifting-table th:nth-child(9),
+.lifting-table td:nth-child(9) {
+  width: 8% !important; /* 3ª Tentativa */
+}
+
+.lifting-table th:nth-child(10),
+.lifting-table td:nth-child(10) {
+  width: 8% !important; /* Tot. Parc. */
+}
+
+/* Remover barras de rolagem de todos os inputs */
+.weight-input {
+  overflow: hidden !important;
+}
+
+.weight-input::-webkit-outer-spin-button,
+.weight-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.weight-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Estilos específicos para reduzir altura */
+.athlete-info {
+  padding: 1px !important;
+}
+
+.athlete-name {
+  margin-bottom: 1px !important;
+  font-size: 11px !important;
+}
+
+.athlete-details {
+  margin-top: 1px !important;
+}
+
+.athlete-details .badge {
+  font-size: 9px !important;
+  padding: 2px 4px !important;
+  margin: 1px !important;
+}
+
+.attempt-input-container {
+  min-height: 25px !important;
+  padding: 1px !important;
+  gap: 1px !important;
+}
+
+.attempt-weight-input {
+  gap: 2px !important;
+}
+
+.attempt-weight-input span {
+  font-size: 9px !important;
+}
+
+.no-attempt-indicator {
+  margin-top: 1px !important;
+}
+
+.no-attempt-indicator small {
+  font-size: 8px !important;
+}
+
+/* Novos estilos para indicadores visuais de status */
+.attempt-status-indicator {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+
+/* Estilos para tentativas bloqueadas */
+.blocked-attempt {
+  background-color: #f8f9fa !important;
+  opacity: 0.6;
+  position: relative;
+}
+
+.blocked-attempt::before {
+  content: "🔒";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 12px;
+  color: #6c757d;
+  z-index: 1;
+}
+
+.blocked-attempt .attempt-weight-input .weight-input {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #ced4da;
+}
+
+.blocked-attempt .attempt-weight-input .weight-input:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+
+.blocked-attempt .attempt-weight-input span {
+  color: #6c757d;
+  opacity: 0.7;
+}
+
+/* Tooltip para tentativas bloqueadas */
+.blocked-attempt .attempt-input-container {
+  position: relative;
+}
+
+.blocked-attempt .attempt-input-container::after {
+  content: "Aguardando tentativa anterior";
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #343a40;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.blocked-attempt .attempt-input-container:hover::after {
+  opacity: 1;
+}
+
+/* Estilos para preview do carregamento da barra */
+.bar-load-preview {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.bar-load-preview small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+}
+
+.plates-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.plate-preview {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.more-plates {
+  font-size: 8px;
+  color: #6c757d;
+  margin-left: 2px;
+}
+
+.bar-load-error {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.bar-load-error small {
+  font-size: 10px;
+}
+
+/* Estilos para tentativas No Attempt */
+.no-attempt {
+  background-color: #fff3cd !important;
+  border-color: #ffeaa7 !important;
+  color: #856404 !important;
+}
+
+.no-attempt:focus {
+  background-color: #fff3cd !important;
+  border-color: #ffeaa7 !important;
+  color: #856404 !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+}
+
+.no-attempt-indicator {
+  margin-top: 5px;
+  text-align: center;
+  padding: 2px 6px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* Estilos para validação de peso */
+.weight-input.invalid-weight {
+  background-color: #f8d7da !important;
+  border-color: #f5c6cb !important;
+  color: #721c24 !important;
+}
+
+.weight-input.invalid-weight:focus {
+  background-color: #f8d7da !important;
+  border-color: #f5c6cb !important;
+  color: #721c24 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Estilos para indicadores de peso mínimo */
+.weight-input[data-min-weight]::placeholder {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Estilos para tentativas bloqueadas por peso inválido */
+.attempt-cell.weight-invalid {
+  background-color: #f8f9fa;
+  opacity: 0.7;
+}
+
+.attempt-cell.weight-invalid .weight-input {
+  cursor: not-allowed;
+  background-color: #e9ecef;
+}
+
+/* Estilos para timer de pedidas */
+.timer-indicator {
+  margin-top: 3px;
+  text-align: center;
+  padding: 2px 4px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  animation: pulse 1s infinite;
+}
+
+.timer-indicator small {
+  font-weight: bold;
+  color: #721c24;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Estilos para tentativas com tempo expirado */
+.attempt-cell.time-expired {
+  background-color: #f8d7da;
+  opacity: 0.8;
+}
+
+.attempt-cell.time-expired .weight-input {
+  cursor: not-allowed;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.attempt-cell.time-expired .weight-input:focus {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Estilos para o timer countdown no status */
+.timer-countdown {
+  font-weight: bold !important;
+  color: #dc3545 !important;
+  font-size: 0.9em !important;
+  animation: countdown-pulse 1s infinite;
+  background-color: #f8d7da;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes countdown-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Estilos para timer quando está acabando (últimos 10 segundos) */
+.timer-countdown.urgent {
+  color: #721c24 !important;
+  background-color: #f5c6cb;
+  animation: urgent-pulse 0.5s infinite;
+}
+
+@keyframes urgent-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Cores das células baseadas no status da tentativa */
+.attempt-cell.status-1 {
+  background-color: #d4edda !important; /* Verde para Good Lift */
+  border-color: #c3e6cb !important;
+  color: #155724 !important;
+}
+
+.attempt-cell.status-2 {
+  background-color: #f8d7da !important; /* Vermelho para No Lift */
+  border-color: #f5c6cb !important;
+  color: #721c24 !important;
+}
+
+.attempt-cell.status-3 {
+  background-color: #fff3cd !important; /* Amarelo para No Attempt */
+  border-color: #ffeaa7 !important;
+  color: #856404 !important;
+}
+
+/* Célula selecionada - Magenta (apenas quando não há status definido) */
+.attempt-cell.selected-attempt:not(.status-1):not(.status-2):not(.status-3) {
+  background-color: #e83e8c !important; /* Magenta */
+  border-color: #d63384 !important;
+  color: white !important;
+}
+
+/* Célula atual (apenas quando não há status definido) */
+.attempt-cell.current-attempt:not(.status-1):not(.status-2):not(.status-3) {
+  background-color: #17a2b8 !important; /* Azul para célula atual */
+  border-color: #138496 !important;
+  color: white !important;
+}
+
+/* Timer display dentro do status-visual */
+.timer-countdown {
+  font-size: 11px;
+  font-weight: bold;
+  color: #dc3545;
+  animation: pulse 1s infinite;
+  display: inline-block;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.timer-countdown.timer-urgent {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  animation: urgent-pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@keyframes urgent-pulse {
+  0% { opacity: 1; background-color: #f8d7da; }
+  50% { opacity: 0.5; background-color: #f1b0b7; }
+  100% { opacity: 1; background-color: #f8d7da; }
+}
+
+/* Timer display */
+.timer-display {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #dc3545;
+}
+
+.timer-display.timer-normal {
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+
+.timer-display.timer-warning {
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+  color: #856404;
+  animation: pulse 1s infinite;
+}
+
+.timer-display.timer-urgent {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #dc3545;
+  animation: urgent-pulse 0.5s infinite;
+}
+
+.timer-display.timer-expired {
+  background-color: #dc3545;
+  border-color: #c82333;
+  color: white;
+  animation: urgent-pulse 0.3s infinite;
+}
+
+/* Coluna de Total Parcial */
+.partial-total-cell {
+  background-color: #f8f9fa !important;
+  border-left: 3px solid #007bff !important;
+  vertical-align: middle;
+}
+
+.partial-total-display {
+  padding: 4px 2px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 1px solid #90caf9;
+  box-shadow: 0 1px 2px rgba(0, 123, 255, 0.1);
+}
+
+.partial-total-display .fw-bold {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.3px;
+  font-size: 12px;
+}
+
+/* Responsividade para a coluna de total parcial */
+@media (max-width: 1400px) {
+  .partial-total-display {
+    padding: 6px 2px;
+  }
+  
+  .partial-total-display .fw-bold {
+    font-size: 0.9rem !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .partial-total-display {
+    padding: 4px 1px;
+  }
+  
+  .partial-total-display .fw-bold {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Status específicos dos badges */
+.badge-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.badge-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+}
+
+.badge-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+  color: #212529 !important;
+}
+
+.badge-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+}
+
+.badge-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}

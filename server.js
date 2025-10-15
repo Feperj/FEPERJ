@@ -37,6 +37,7 @@ const {
 // Importar rotas das APIs
 const atletasRoutes = require('./routes/atletas');
 const documentosRoutes = require('./routes/documentos');
+const documentosStorageRoutes = require('./routes/documentos-storage');
 const carteirinhasRoutes = require('./routes/carteirinhas');
 const exportacaoRoutes = require('./routes/exportacao');
 
@@ -1071,6 +1072,7 @@ app.post('/api/usuarios', verificarToken, async (req, res) => {
 // Usar as rotas das APIs
 app.use('/api/atletas', verificarToken, atletasRoutes);
 app.use('/api/documentos', verificarToken, documentosRoutes);
+app.use('/api/documentos-storage', verificarToken, documentosStorageRoutes);
 app.use('/api/carteirinhas', verificarToken, carteirinhasRoutes);
 app.use('/api/exportacao', verificarToken, exportacaoRoutes);
 
