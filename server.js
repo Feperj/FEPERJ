@@ -34,6 +34,12 @@ const {
     equipeStatusService
 } = require('./supabaseService.js');
 
+// Importar rotas das APIs
+const atletasRoutes = require('./routes/atletas');
+const documentosRoutes = require('./routes/documentos');
+const carteirinhasRoutes = require('./routes/carteirinhas');
+const exportacaoRoutes = require('./routes/exportacao');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -1057,6 +1063,20 @@ app.post('/api/usuarios', verificarToken, async (req, res) => {
         });
     }
 });
+
+// =====================================================
+// ROTAS DAS NOVAS APIs
+// =====================================================
+
+// Usar as rotas das APIs
+app.use('/api/atletas', verificarToken, atletasRoutes);
+app.use('/api/documentos', verificarToken, documentosRoutes);
+app.use('/api/carteirinhas', verificarToken, carteirinhasRoutes);
+app.use('/api/exportacao', verificarToken, exportacaoRoutes);
+
+// =====================================================
+// ROTAS EXISTENTES (MANTER COMPATIBILIDADE)
+// =====================================================
 
 // Rota para verificar status da conexão
 app.get('/api/status', async (req, res) => {

@@ -402,7 +402,10 @@ const atletaService = {
       ...data,
       dataNascimento: convertTimestamp(data.data_nascimento),
       dataFiliacao: convertTimestamp(data.data_filiacao),
-      dataCriacao: convertTimestamp(data.data_criacao)
+      dataCriacao: convertTimestamp(data.data_criacao),
+      // Garantir que as relações sejam mapeadas corretamente
+      categoria: data.categorias || null,
+      equipe: data.equipes || null
     };
   },
 
@@ -460,15 +463,27 @@ const atletaService = {
       throw new Error(`CPF ${atleta.cpf} já está cadastrado no sistema. Atleta: ${atletaExistente.nome} (Equipe: ${atletaExistente.equipe?.nome_equipe || 'N/A'}). Entre em contato com o administrador.`);
     }
     
+    // Mapear campos camelCase para snake_case
+    const atletaData = {
+      nome: atleta.nome,
+      cpf: cpfLimpo,
+      matricula: atleta.matricula,
+      sexo: atleta.sexo,
+      email: atleta.email,
+      telefone: atleta.telefone,
+      data_nascimento: atleta.dataNascimento ? new Date(atleta.dataNascimento).toISOString() : null,
+      data_filiacao: atleta.dataFiliacao ? new Date(atleta.dataFiliacao).toISOString() : new Date().toISOString(),
+      maior_total: atleta.maiorTotal,
+      status: atleta.status || 'ATIVO',
+      id_categoria: atleta.idCategoria,
+      id_equipe: atleta.idEquipe,
+      endereco: atleta.endereco,
+      observacoes: atleta.observacoes
+    };
+    
     const { data: novoAtleta, error } = await supabase
       .from('atletas')
-      .insert({
-        ...atleta,
-        cpf: cpfLimpo, // Salvar CPF limpo (apenas números)
-        status: 'ATIVO', // Status padrão para novos atletas
-        data_nascimento: atleta.dataNascimento ? new Date(atleta.dataNascimento).toISOString() : null,
-        data_filiacao: atleta.dataFiliacao ? new Date(atleta.dataFiliacao).toISOString() : new Date().toISOString()
-      })
+      .insert(atletaData)
       .select()
       .single();
       
@@ -488,12 +503,27 @@ const atletaService = {
       }
     }
     
-    const updateData = {
-      ...atleta,
-      cpf: atleta.cpf ? atleta.cpf.replace(/\D/g, '') : undefined, // Salvar CPF limpo
-      data_nascimento: atleta.dataNascimento ? new Date(atleta.dataNascimento).toISOString() : undefined,
-      data_filiacao: atleta.dataFiliacao ? new Date(atleta.dataFiliacao).toISOString() : undefined,
-    };
+    // Mapear campos camelCase para snake_case
+    const updateData = {};
+    
+    if (atleta.nome !== undefined) updateData.nome = atleta.nome;
+    if (atleta.cpf !== undefined) updateData.cpf = atleta.cpf.replace(/\D/g, '');
+    if (atleta.matricula !== undefined) updateData.matricula = atleta.matricula;
+    if (atleta.sexo !== undefined) updateData.sexo = atleta.sexo;
+    if (atleta.email !== undefined) updateData.email = atleta.email;
+    if (atleta.telefone !== undefined) updateData.telefone = atleta.telefone;
+    if (atleta.dataNascimento !== undefined) {
+      updateData.data_nascimento = atleta.dataNascimento ? new Date(atleta.dataNascimento).toISOString() : null;
+    }
+    if (atleta.dataFiliacao !== undefined) {
+      updateData.data_filiacao = atleta.dataFiliacao ? new Date(atleta.dataFiliacao).toISOString() : null;
+    }
+    if (atleta.maiorTotal !== undefined) updateData.maior_total = atleta.maiorTotal;
+    if (atleta.status !== undefined) updateData.status = atleta.status;
+    if (atleta.idCategoria !== undefined) updateData.id_categoria = atleta.idCategoria;
+    if (atleta.idEquipe !== undefined) updateData.id_equipe = atleta.idEquipe;
+    if (atleta.endereco !== undefined) updateData.endereco = atleta.endereco;
+    if (atleta.observacoes !== undefined) updateData.observacoes = atleta.observacoes;
     
     const { error } = await supabase
       .from('atletas')

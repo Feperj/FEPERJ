@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Atleta - Sistema FEPERJ</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+            margin-right: 1rem;
+        }
+        
+        .logo p {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-link i {
+            margin-right: 0.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-details {
+            text-align: right;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-outline-primary {
+            background-color: transparent;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .badge-danger {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .alert-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+        
+        .alert-danger {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .info-value {
+            color: #6b7280;
+        }
+        
+        .melhores-resultados {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .melhores-resultados .table {
+            background: white;
+            color: #374151;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .melhores-resultados .table th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .melhores-resultados .table td {
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .medal-icon {
+            font-size: 1.2rem;
+        }
+        
+        .medal-gold {
+            color: #fbbf24;
+        }
+        
+        .medal-silver {
+            color: #9ca3af;
+        }
+        
+        .medal-bronze {
+            color: #d97706;
+        }
+        
+        .atleta-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .atleta-header h2 {
+            margin: 0;
+            font-size: 1.875rem;
+            font-weight: 700;
+        }
+        
+        .atleta-header .atleta-info {
+            margin-top: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast-success {
+            background-color: #10b981;
+        }
+        
+        .toast-error {
+            background-color: #ef4444;
+        }
+        
+        .toast-warning {
+            background-color: #f59e0b;
+        }
+        
+        .toast-info {
+            background-color: #3b82f6;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .fw-bold {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <!-- Logo -->
+            <div class="logo">
+                <h1>FEPERJ</h1>
+                <p>Sistema de Gestão</p>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="atletas.html" class="nav-link active">
+                    <i class="fas fa-users"></i>
+                    Atletas
+                </a>
+                <a href="equipes.html" class="nav-link">
+                    <i class="fas fa-shield-alt"></i>
+                    Equipes
+                </a>
+                <a href="competicoes.html" class="nav-link">
+                    <i class="fas fa-trophy"></i>
+                    Competições
+                </a>
+                <a href="inscricoes.html" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    Inscrições
+                </a>
+                <a href="resultados.html" class="nav-link">
+                    <i class="fas fa-medal"></i>
+                    Resultados
+                </a>
+                <a href="relatorios.html" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    Relatórios
+                </a>
+            </nav>
+            
+            <!-- User Info -->
+            <div class="user-info">
+                <div class="user-details">
+                    <div class="user-name" id="userName">Carregando...</div>
+                    <div class="user-role" id="userRole">Carregando...</div>
+                </div>
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Botão Voltar -->
+        <div class="mb-4">
+            <button onclick="voltarParaAtletas()" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i>
+                Voltar para Lista de Atletas
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingContainer" class="loading-container">
+            <div class="loading"></div>
+            <p>Carregando dados do atleta...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="errorContainer" class="alert alert-danger" style="display: none;">
+            <h4 class="font-semibold mb-2">Erro ao carregar dados</h4>
+            <p id="errorMessage"></p>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div id="mainContent" style="display: none;">
+            <!-- Cabeçalho do Atleta -->
+            <div class="card">
+                <div class="card-header atleta-header">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="flex items-center gap-2">
+                                <i class="fas fa-trophy"></i>
+                                <span id="atletaNome"></span>
+                            </h2>
+                            <div class="atleta-info">
+                                <span id="atletaEquipe"></span> • <span id="atletaMatricula"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <span id="atletaStatus" class="badge badge-success"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Melhores Resultados -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="flex items-center gap-2 text-lg font-semibold">
+                        <i class="fas fa-weight"></i>
+                        Melhores Resultados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" colspan="4">Melhores Marcas</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-center">Agachamento</th>
+                                    <th class="text-center">Supino</th>
+                                    <th class="text-center">Terra</th>
+                                    <th class="text-center">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-center fw-bold" id="melhorAgachamento">0</td>
+                                    <td class="text-center fw-bold" id="melhorSupino">0</td>
+                                    <td class="text-center fw-bold" id="melhorTerra">0</td>
+                                    <td class="text-center fw-bold" id="melhorTotal">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Coluna Esquerda - Informações Pessoais -->
+                <div class="lg:col-span-1">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="text-lg font-semibold">Informações Pessoais</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="space-y-0">
+                                <div class="info-row">
+                                    <span class="info-label">Sexo:</span>
+                                    <span class="info-value" id="atletaSexo"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Data de Nascimento:</span>
+                                    <span class="info-value" id="atletaDataNascimento"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Equipe:</span>
+                                    <span class="info-value" id="atletaEquipeInfo"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Email:</span>
+                                    <span class="info-value" id="atletaEmail"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Telefone:</span>
+                                    <span class="info-value" id="atletaTelefone"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Data de Filiação:</span>
+                                    <span class="info-value" id="atletaDataFiliacao"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Maior Total:</span>
+                                    <span class="info-value" id="atletaMaiorTotal"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Endereço:</span>
+                                    <span class="info-value" id="atletaEndereco"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita - Resultados -->
+                <div class="lg:col-span-2">
+                    <!-- Top 5 Melhores Classificações -->
+                    <div class="card mb-6">
+                        <div class="card-header">
+                            <h5 class="flex items-center gap-2 text-lg font-semibold">
+                                <i class="fas fa-trophy"></i>
+                                Top 5 Melhores Classificações
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="top5Content">
+                                <!-- Conteúdo será carregado dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Histórico Completo de Competições -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="flex items-center gap-2 text-lg font-semibold">
+                                <i class="fas fa-calendar-alt"></i>
+                                Histórico de Competições
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="historicoContent">
+                                <!-- Conteúdo será carregado dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        let userInfo = null;
+        let atletaId = null;
+        let atleta = null;
+        let resultados = [];
+        let melhoresResultados = {
+            melhorAgachamento: 0,
+            melhorSupino: 0,
+            melhorTerra: 0,
+            melhorTotal: 0
+        };
+        let top5Classificacoes = [];
+        
+        // Função para obter token atual do localStorage
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+        
+        // Função para obter informações do usuário
+        function getUserInfo() {
+            try {
+                const userInfo = localStorage.getItem('userInfo');
+                return userInfo ? JSON.parse(userInfo) : null;
+            } catch (error) {
+                console.error('Erro ao obter informações do usuário:', error);
+                return null;
+            }
+        }
+        
+        // Verificar autenticação
+        function verificarAutenticacao() {
+            const authToken = getAuthToken();
+            console.log('🔐 Verificando autenticação...');
+            console.log('🔑 Token:', authToken ? 'Presente' : 'Ausente');
+            
+            if (!authToken) {
+                console.log('❌ Token ausente, redirecionando para login');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                console.log('👤 UserInfo:', userInfo ? 'Presente' : 'Ausente');
+                
+                if (!userInfo) {
+                    throw new Error('Informações do usuário não encontradas');
+                }
+                
+                document.getElementById('userName').textContent = userInfo.nome || userInfo.login;
+                document.getElementById('userRole').textContent = userInfo.tipo || 'Usuário';
+                
+                console.log('✅ Autenticação válida');
+                
+            } catch (error) {
+                console.error('❌ Erro ao verificar autenticação:', error);
+                logout();
+            }
+        }
+        
+        // Função de logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('loginTime');
+            window.location.href = 'login.html';
+        }
+        
+        // Função para fazer requisições autenticadas
+        async function apiRequest(url, options = {}) {
+            const authToken = getAuthToken();
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            console.log('🌐 Fazendo requisição para:', `${API_BASE_URL}${url}`);
+            
+            const response = await fetch(`${API_BASE_URL}${url}`, {
+                ...defaultOptions,
+                ...options
+            });
+            
+            console.log('📡 Status da resposta:', response.status);
+            
+            if (response.status === 401) {
+                console.log('❌ Token inválido, fazendo logout');
+                logout();
+                return null;
+            }
+            
+            if (!response.ok) {
+                console.log('❌ Erro na resposta:', response.status, response.statusText);
+                const errorText = await response.text();
+                console.log('❌ Conteúdo do erro:', errorText);
+                throw new Error(`Erro ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📋 Dados recebidos:', data);
+            return data;
+        }
+        
+        // Função para mostrar toast
+        function mostrarToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        
+        // Função para formatar data
+        function formatarData(data) {
+            if (!data) return 'N/A';
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+        
+        // Função para formatar data de nascimento (apenas ano)
+        function formatarDataNascimento(dataNascimento) {
+            if (!dataNascimento) return 'N/A';
+            return new Date(dataNascimento).getFullYear().toString();
+        }
+        
+        // Função para formatar sexo
+        function formatarSexo(sexo) {
+            return sexo === 'M' ? 'Masculino' : 'Feminino';
+        }
+        
+        // Função para obter ícone de medalha
+        function getMedalIcon(posicao) {
+            switch (posicao) {
+                case 1:
+                    return '<i class="fas fa-medal medal-icon medal-gold" title="Ouro"></i>';
+                case 2:
+                    return '<i class="fas fa-medal medal-icon medal-silver" title="Prata"></i>';
+                case 3:
+                    return '<i class="fas fa-medal medal-icon medal-bronze" title="Bronze"></i>';
+                default:
+                    return `<span class="badge badge-secondary">${posicao}º</span>`;
+            }
+        }
+        
+        // Carregar dados do atleta
+        async function carregarDadosAtleta() {
+            try {
+                console.log('🔍 Carregando dados do atleta ID:', atletaId);
+                
+                // Carregar dados do atleta
+                const atletaData = await apiRequest(`/api/atletas/${atletaId}`);
+                console.log('📋 Resposta da API:', atletaData);
+                
+                if (!atletaData || !atletaData.success) {
+                    throw new Error(`Atleta não encontrado. Resposta: ${JSON.stringify(atletaData)}`);
+                }
+                
+                atleta = atletaData.data;
+                console.log('✅ Dados do atleta carregados:', atleta);
+                
+                // Carregar resultados (pode falhar se não houver dados)
+                try {
+                    // Por enquanto, usar dados mockados
+                    // Em produção, implementar API de resultados
+                    resultados = [];
+                    top5Classificacoes = [];
+                    
+                    console.log('⚠️ Resultados não implementados - usando dados mockados');
+                } catch (resultadoError) {
+                    console.warn('⚠️ Erro ao carregar resultados (continuando sem resultados):', resultadoError);
+                }
+                
+                // Exibir dados
+                exibirDadosAtleta();
+                exibirMelhoresResultados();
+                exibirTop5Classificacoes();
+                exibirHistoricoCompeticoes();
+                
+                // Esconder loading e mostrar conteúdo
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+            } catch (error) {
+                console.error('❌ Erro ao carregar dados do atleta:', error);
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('errorContainer').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 
+                    `Erro ao carregar dados do atleta: ${error.message}`;
+            }
+        }
+        
+        // Exibir dados do atleta
+        function exibirDadosAtleta() {
+            document.getElementById('atletaNome').textContent = atleta.nome;
+            document.getElementById('atletaEquipe').textContent = atleta.equipe?.nomeEquipe || 'N/A';
+            document.getElementById('atletaMatricula').textContent = atleta.matricula || 'N/A';
+            document.getElementById('atletaStatus').textContent = atleta.status === 'ATIVO' ? 'Ativo' : 'Inativo';
+            document.getElementById('atletaStatus').className = 
+                atleta.status === 'ATIVO' ? 'badge badge-success' : 'badge badge-secondary';
+            
+            // Informações pessoais
+            document.getElementById('atletaSexo').textContent = formatarSexo(atleta.sexo);
+            document.getElementById('atletaDataNascimento').textContent = formatarDataNascimento(atleta.dataNascimento);
+            document.getElementById('atletaEquipeInfo').textContent = atleta.equipe?.nomeEquipe || 'N/A';
+            document.getElementById('atletaEmail').textContent = atleta.email;
+            document.getElementById('atletaTelefone').textContent = atleta.telefone || 'N/A';
+            document.getElementById('atletaDataFiliacao').textContent = formatarData(atleta.dataFiliacao);
+            document.getElementById('atletaMaiorTotal').textContent = atleta.maiorTotal ? `${atleta.maiorTotal}kg` : 'N/A';
+            document.getElementById('atletaEndereco').textContent = atleta.endereco || 'N/A';
+        }
+        
+        // Exibir melhores resultados
+        function exibirMelhoresResultados() {
+            document.getElementById('melhorAgachamento').textContent = melhoresResultados.melhorAgachamento;
+            document.getElementById('melhorSupino').textContent = melhoresResultados.melhorSupino;
+            document.getElementById('melhorTerra').textContent = melhoresResultados.melhorTerra;
+            document.getElementById('melhorTotal').textContent = melhoresResultados.melhorTotal;
+        }
+        
+        // Exibir top 5 classificações
+        function exibirTop5Classificacoes() {
+            const top5Content = document.getElementById('top5Content');
+            
+            if (top5Classificacoes.length === 0) {
+                top5Content.innerHTML = `
+                    <div class="alert alert-info">
+                        Nenhuma classificação encontrada para este atleta.
+                    </div>
+                `;
+                return;
+            }
+            
+            top5Content.innerHTML = `
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ano</th>
+                                <th>Competição</th>
+                                <th>Divisão</th>
+                                <th>Categoria</th>
+                                <th>Resultado</th>
+                                <th>Classificação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${top5Classificacoes.map(resultado => `
+                                <tr>
+                                    <td>${formatarData(resultado.competitionDate).split('/')[2]}</td>
+                                    <td>${resultado.competitionName}</td>
+                                    <td>${resultado.division}</td>
+                                    <td>${resultado.weightClass}</td>
+                                    <td>${resultado.total} kg</td>
+                                    <td class="text-center">
+                                        ${getMedalIcon(resultado.position)}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        // Exibir histórico de competições
+        function exibirHistoricoCompeticoes() {
+            const historicoContent = document.getElementById('historicoContent');
+            
+            if (resultados.length === 0) {
+                historicoContent.innerHTML = `
+                    <div class="alert alert-info">
+                        Nenhuma competição encontrada para este atleta.
+                    </div>
+                `;
+                return;
+            }
+            
+            historicoContent.innerHTML = `
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Competição</th>
+                                <th>Local</th>
+                                <th>Divisão</th>
+                                <th>Categoria</th>
+                                <th>Agachamento</th>
+                                <th>Supino</th>
+                                <th>Terra</th>
+                                <th>Total</th>
+                                <th>Classificação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${resultados.map(resultado => `
+                                <tr>
+                                    <td>${formatarData(resultado.competitionDate)}</td>
+                                    <td>${resultado.competitionName}</td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        ${resultado.competitionCity}
+                                    </td>
+                                    <td>${resultado.division}</td>
+                                    <td>${resultado.weightClass}</td>
+                                    <td>${resultado.squat} kg</td>
+                                    <td>${resultado.bench} kg</td>
+                                    <td>${resultado.deadlift} kg</td>
+                                    <td class="fw-bold">${resultado.total} kg</td>
+                                    <td class="text-center">
+                                        ${resultado.position > 0 ? getMedalIcon(resultado.position) : 'N/A'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        // Voltar para lista de atletas
+        function voltarParaAtletas() {
+            window.location.href = 'atletas.html';
+        }
+        
+        // Inicializar página
+        window.addEventListener('load', function() {
+            verificarAutenticacao();
+            
+            // Obter ID do atleta da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            atletaId = urlParams.get('id');
+            
+            if (!atletaId) {
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('errorContainer').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'ID do atleta não fornecido na URL';
+                return;
+            }
+            
+            carregarDadosAtleta();
+        });
+    </script>
+</body>
+</html>
