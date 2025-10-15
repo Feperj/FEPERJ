@@ -1,13 +1,37 @@
+// Carregar variáveis de ambiente
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const fs = require('fs');
-const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+
+// Importar configuração Supabase
+const { supabase, testSupabaseConnection, criarAdminInicial, criarDadosExemplo, inicializarConfiguracoes } = require('./supabase');
+
+// Importar todos os serviços do Supabase
+const { 
+    usuarioService, 
+    atletaService, 
+    equipeService, 
+    categoriaService, 
+    competicaoService, 
+    inscricaoService, 
+    logService,
+    fileService,
+    dashboardService,
+    anuidadeService,
+    pagamentoService,
+    documentoService,
+    tipoCompeticaoService,
+    anuidadeEquipeService,
+    equipeStatusService
+} = require('./supabaseService.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,10 +40,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Configuração MongoDB Atlas
-const MONGODB_URI = 'mongodb+srv://jamarestudo:49912170Lacrimosa1!@familiajamar.wu9knb3.mongodb.net/?retryWrites=true&w=majority&appName=Familiajamar';
-const DB_NAME = 'project0';
 
 // Configuração JWT
 const JWT_SECRET = '7qt1DUw9b4p4zKCC';
@@ -42,24 +62,17 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-let db = null;
-let client = null;
-
-// Função para conectar ao MongoDB Atlas
-async function conectarMongoDB() {
+// Função para conectar ao Supabase
+async function conectarSupabase() {
     try {
-        console.log('🔄 Conectando ao MongoDB Atlas...');
+        // Testar conexão
+        const conectado = await testSupabaseConnection();
+        if (!conectado) {
+            return false;
+        }
         
-        client = new MongoClient(MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        
-        await client.connect();
-        db = client.db(DB_NAME);
-        
-        console.log('✅ Conectado ao MongoDB Atlas com sucesso');
-        console.log('📊 Banco:', DB_NAME);
+        // Inicializar configurações padrão
+        await inicializarConfiguracoes();
         
         // Criar usuário admin inicial se não existir
         await criarAdminInicial();
@@ -69,120 +82,33 @@ async function conectarMongoDB() {
         
         return true;
     } catch (error) {
-        console.log('❌ Erro ao conectar ao MongoDB Atlas:', error.message);
+        console.log('❌ Erro ao conectar ao Supabase:', error.message);
         return false;
     }
 }
 
-// Função para criar usuário admin inicial
-async function criarAdminInicial() {
-    try {
-        const usuariosCollection = db.collection('usuarios');
-        const admin = await usuariosCollection.findOne({ username: '15119236790' });
-        
-        if (!admin) {
-            const hashedPassword = await bcrypt.hash('49912170', 10);
-            await usuariosCollection.insertOne({
-                username: '15119236790',
-                password: hashedPassword,
-                nome: 'Administrador FEPERJ',
-                email: 'admin@feperj.com',
-                nivel_acesso: 'admin',
-                data_criacao: new Date()
-            });
-            console.log('✅ Usuário admin criado com sucesso');
-        } else {
-            console.log('ℹ️ Usuário admin já existe');
-        }
-    } catch (error) {
-        console.log('❌ Erro ao criar admin:', error.message);
-    }
-}
-
-// Função para criar dados de exemplo
-async function criarDadosExemplo() {
-    try {
-        // Verificar se já existem dados
-        const equipesCollection = db.collection('equipes');
-        const count = await equipesCollection.countDocuments();
-        
-        if (count > 0) {
-            console.log('ℹ️ Dados de exemplo já existem');
-            return;
-        }
-        
-        // Inserir equipes de exemplo
-        const equipes = [
-            {
-                nome: 'Power Rio',
-                cidade: 'Rio de Janeiro',
-                tecnico: 'João Silva',
-                telefone: '(21) 99999-1111',
-                email: 'powerrio@email.com',
-                data_criacao: new Date()
-            },
-            {
-                nome: 'Força Carioca',
-                cidade: 'Rio de Janeiro',
-                tecnico: 'Maria Santos',
-                telefone: '(21) 99999-2222',
-                email: 'forcacarioca@email.com',
-                data_criacao: new Date()
-            },
-            {
-                nome: 'Levantadores RJ',
-                cidade: 'Niterói',
-                tecnico: 'Pedro Costa',
-                telefone: '(21) 99999-3333',
-                email: 'levantadores@email.com',
-                data_criacao: new Date()
-            }
-        ];
-        
-        await equipesCollection.insertMany(equipes);
-        
-        // Inserir categorias de exemplo
-        const categoriasCollection = db.collection('categorias');
-        const categorias = [
-            { nome: '59kg Feminino', peso_minimo: 0, peso_maximo: 59, sexo: 'F', descricao: 'Até 59kg - Feminino' },
-            { nome: '66kg Feminino', peso_minimo: 59.01, peso_maximo: 66, sexo: 'F', descricao: '59.01kg a 66kg - Feminino' },
-            { nome: '74kg Feminino', peso_minimo: 66.01, peso_maximo: 74, sexo: 'F', descricao: '66.01kg a 74kg - Feminino' },
-            { nome: '83kg Feminino', peso_minimo: 74.01, peso_maximo: 83, sexo: 'F', descricao: '74.01kg a 83kg - Feminino' },
-            { nome: '84kg+ Feminino', peso_minimo: 83.01, peso_maximo: 999, sexo: 'F', descricao: 'Acima de 83kg - Feminino' },
-            { nome: '66kg Masculino', peso_minimo: 0, peso_maximo: 66, sexo: 'M', descricao: 'Até 66kg - Masculino' },
-            { nome: '74kg Masculino', peso_minimo: 66.01, peso_maximo: 74, sexo: 'M', descricao: '66.01kg a 74kg - Masculino' },
-            { nome: '83kg Masculino', peso_minimo: 74.01, peso_maximo: 83, sexo: 'M', descricao: '74.01kg a 83kg - Masculino' },
-            { nome: '93kg Masculino', peso_minimo: 83.01, peso_maximo: 93, sexo: 'M', descricao: '83.01kg a 93kg - Masculino' },
-            { nome: '105kg Masculino', peso_minimo: 93.01, peso_maximo: 105, sexo: 'M', descricao: '93.01kg a 105kg - Masculino' },
-            { nome: '120kg Masculino', peso_minimo: 105.01, peso_maximo: 120, sexo: 'M', descricao: '105.01kg a 120kg - Masculino' },
-            { nome: '120kg+ Masculino', peso_minimo: 120.01, peso_maximo: 999, sexo: 'M', descricao: 'Acima de 120kg - Masculino' }
-        ];
-        
-        await categoriasCollection.insertMany(categorias);
-        
-        console.log('✅ Dados de exemplo criados com sucesso');
-        
-    } catch (error) {
-        console.log('❌ Erro ao criar dados de exemplo:', error.message);
-    }
-}
 
 // Middleware de autenticação
-function autenticarToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+function verificarToken(req, res, next) {
+    const token = req.headers['authorization']?.replace('Bearer ', '');
     
     if (!token) {
-        return res.status(401).json({ error: 'Token não fornecido' });
+        return res.status(401).json({ 
+            success: false, 
+            message: 'Token não fornecido' 
+        });
     }
     
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({ error: 'Token inválido' });
-        }
-        req.user = user;
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
         next();
-    });
+    } catch (error) {
+        return res.status(401).json({ 
+            success: false, 
+            message: 'Token inválido' 
+        });
+    }
 }
 
 // Rota de login
@@ -191,143 +117,246 @@ app.post('/api/login', async (req, res) => {
         const { username, password } = req.body;
         
         if (!username || !password) {
-            return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
+            return res.status(400).json({
+                success: false,
+                message: 'Username e password são obrigatórios'
+            });
         }
         
-        const usuariosCollection = db.collection('usuarios');
-        const usuario = await usuariosCollection.findOne({ username });
+        // Buscar usuário usando o serviço
+        const usuario = await usuarioService.getByLogin(username);
         
-        if (!usuario) {
-            return res.status(401).json({ error: 'Credenciais inválidas' });
+        if (!usuario || !usuario.ativo) {
+            return res.status(401).json({
+                success: false,
+                message: 'Credenciais inválidas'
+            });
         }
         
-        const senhaValida = await bcrypt.compare(password, usuario.password);
+        // Verificar senha
+        const senhaValida = await bcrypt.compare(password, usuario.senha);
         if (!senhaValida) {
-            return res.status(401).json({ error: 'Credenciais inválidas' });
+            return res.status(401).json({
+                success: false,
+                message: 'Credenciais inválidas'
+            });
         }
         
         // Gerar token JWT
         const token = jwt.sign(
             { 
-                id: usuario._id, 
-                username: usuario.username,
-                nivel_acesso: usuario.nivel_acesso 
+                id: usuario.id, 
+                login: usuario.login, 
+                tipo: usuario.tipo,
+                nome: usuario.nome
             },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
         );
         
-        // Remover senha do objeto de resposta
-        delete usuario.password;
+        // Log da atividade
+        await logService.create({
+            usuario: usuario.nome,
+            acao: 'LOGIN',
+            detalhes: `Login realizado com sucesso`,
+            tipo_usuario: usuario.tipo
+        });
         
         res.json({
             success: true,
+            message: 'Login realizado com sucesso',
             token,
-            usuario
+            user: {
+                id: usuario.id,
+                login: usuario.login,
+                nome: usuario.nome,
+                tipo: usuario.tipo
+            }
         });
         
     } catch (error) {
-        console.log('❌ Erro no login:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro no login:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// Rota para verificar token
-app.get('/api/verificar-token', autenticarToken, (req, res) => {
-    res.json({ 
-        success: true, 
-        user: req.user 
-    });
-});
-
-// ==================== ROTAS DE ATLETAS ====================
-
-// Buscar atletas
-app.get('/api/atletas', autenticarToken, async (req, res) => {
+// Rota para obter dados do dashboard
+app.get('/api/dashboard', verificarToken, async (req, res) => {
     try {
-        const atletasCollection = db.collection('atletas');
-        const atletas = await atletasCollection.find({}).toArray();
+        // Usar o serviço de dashboard
+        const stats = await dashboardService.getStats();
         
-        // Buscar dados relacionados
-        const equipesCollection = db.collection('equipes');
-        const categoriasCollection = db.collection('categorias');
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'DASHBOARD_ACCESS',
+            detalhes: 'Acesso ao dashboard',
+            tipo_usuario: req.user.tipo
+        });
         
-        const atletasCompletos = await Promise.all(
-            atletas.map(async (atleta) => {
-                const equipe = atleta.id_equipe ? await equipesCollection.findOne({ _id: new ObjectId(atleta.id_equipe) }) : null;
-                const categoria = atleta.id_categoria ? await categoriasCollection.findOne({ _id: new ObjectId(atleta.id_categoria) }) : null;
-                
-                return {
-                    ...atleta,
-                    _id: atleta._id.toString(),
-                    equipe_nome: equipe ? equipe.nome : null,
-                    categoria_nome: categoria ? categoria.nome : null
-                };
-            })
-        );
+        res.json({
+            success: true,
+            data: stats
+        });
         
-        res.json(atletasCompletos);
     } catch (error) {
-        console.log('❌ Erro ao buscar atletas:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao buscar dados do dashboard:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// Criar atleta
-app.post('/api/atletas', autenticarToken, async (req, res) => {
+// Rota para listar atletas
+app.get('/api/atletas', verificarToken, async (req, res) => {
     try {
-        const atletasCollection = db.collection('atletas');
+        const atletas = await atletaService.getAll();
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'LIST_ATLETAS',
+            detalhes: 'Listagem de atletas',
+            tipo_usuario: req.user.tipo
+        });
+        
+        res.json({
+            success: true,
+            data: atletas
+        });
+        
+    } catch (error) {
+        console.error('Erro ao buscar atletas:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para buscar atleta por CPF
+app.get('/api/atletas/cpf/:cpf', verificarToken, async (req, res) => {
+    try {
+        const { cpf } = req.params;
+        const cpfLimpo = cpf.replace(/\D/g, '');
+        
+        const atleta = await atletaService.getByCpf(cpfLimpo);
+        
+        if (!atleta) {
+            return res.json({
+                success: true,
+                data: null,
+                message: 'Atleta não encontrado'
+            });
+        }
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'SEARCH_ATLETA_CPF',
+            detalhes: `Busca por CPF: ${cpf}`,
+            tipo_usuario: req.user.tipo
+        });
+        
+        res.json({
+            success: true,
+            data: atleta
+        });
+        
+    } catch (error) {
+        console.error('Erro ao buscar atleta por CPF:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para criar novo atleta
+app.post('/api/atletas', verificarToken, async (req, res) => {
+    try {
+        const dadosAtleta = req.body;
         
         // Verificar se CPF já existe
-        const cpfExistente = await atletasCollection.findOne({ cpf: req.body.cpf });
-        if (cpfExistente) {
-            return res.status(400).json({ error: 'CPF já cadastrado' });
+        const cpfLimpo = dadosAtleta.cpf.replace(/\D/g, '');
+        const atletaExistente = await atletaService.getByCpf(cpfLimpo);
+        
+        if (atletaExistente) {
+            return res.status(400).json({
+                success: false,
+                message: `CPF ${dadosAtleta.cpf} já está cadastrado no sistema. Atleta: ${atletaExistente.nome} (Equipe: ${atletaExistente.equipe?.nome_equipe || 'N/A'}). Entre em contato com o administrador.`
+            });
         }
         
-        const atleta = {
-            ...req.body,
-            data_criacao: new Date(),
-            matricula: gerarMatricula(req.body.cpf),
+        // Criar atleta
+        const novoAtleta = await atletaService.create({
+            ...dadosAtleta,
+            cpf: cpfLimpo,
             status: 'ATIVO'
-        };
+        });
         
-        const result = await atletasCollection.insertOne(atleta);
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'CREATE_ATLETA',
+            detalhes: `Atleta criado: ${dadosAtleta.nome}`,
+            tipo_usuario: req.user.tipo,
+            resource_type: 'atleta',
+            resource_id: novoAtleta
+        });
         
         res.json({
             success: true,
-            id: result.insertedId.toString(),
-            message: 'Atleta criado com sucesso'
+            message: 'Atleta criado com sucesso',
+            data: { id: novoAtleta }
         });
         
     } catch (error) {
-        console.log('❌ Erro ao criar atleta:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao criar atleta:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// Atualizar atleta
-app.put('/api/atletas/:id', autenticarToken, async (req, res) => {
+// Rota para atualizar atleta
+app.put('/api/atletas/:id', verificarToken, async (req, res) => {
     try {
-        const atletasCollection = db.collection('atletas');
         const { id } = req.params;
+        const dadosAtualizacao = req.body;
         
-        // Verificar se CPF já existe em outro atleta
-        const cpfExistente = await atletasCollection.findOne({ 
-            cpf: req.body.cpf, 
-            _id: { $ne: new ObjectId(id) } 
+        // Se o CPF foi alterado, verificar se já existe
+        if (dadosAtualizacao.cpf) {
+            const cpfLimpo = dadosAtualizacao.cpf.replace(/\D/g, '');
+            const atletaExistente = await atletaService.getByCpf(cpfLimpo);
+            
+            if (atletaExistente && atletaExistente.id !== id) {
+                return res.status(400).json({
+                    success: false,
+                    message: `CPF ${dadosAtualizacao.cpf} já está cadastrado no sistema. Atleta: ${atletaExistente.nome} (Equipe: ${atletaExistente.equipe?.nome_equipe || 'N/A'}). Entre em contato com o administrador.`
+                });
+            }
+            
+            dadosAtualizacao.cpf = cpfLimpo;
+        }
+        
+        // Atualizar atleta
+        await atletaService.update(id, dadosAtualizacao);
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'UPDATE_ATLETA',
+            detalhes: `Atleta atualizado: ${dadosAtualizacao.nome || 'ID: ' + id}`,
+            tipo_usuario: req.user.tipo,
+            resource_type: 'atleta',
+            resource_id: id
         });
-        if (cpfExistente) {
-            return res.status(400).json({ error: 'CPF já cadastrado para outro atleta' });
-        }
-        
-        const result = await atletasCollection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { ...req.body, data_atualizacao: new Date() } }
-        );
-        
-        if (result.matchedCount === 0) {
-            return res.status(404).json({ error: 'Atleta não encontrado' });
-        }
         
         res.json({
             success: true,
@@ -335,458 +364,576 @@ app.put('/api/atletas/:id', autenticarToken, async (req, res) => {
         });
         
     } catch (error) {
-        console.log('❌ Erro ao atualizar atleta:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao atualizar atleta:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// Excluir atleta
-app.delete('/api/atletas/:id', autenticarToken, async (req, res) => {
+// Rota para deletar atleta
+app.delete('/api/atletas/:id', verificarToken, async (req, res) => {
     try {
-        const atletasCollection = db.collection('atletas');
         const { id } = req.params;
         
-        const result = await atletasCollection.deleteOne({ _id: new ObjectId(id) });
+        // Verificar se atleta tem inscrições
+        const inscricoes = await inscricaoService.getByAtleta(id);
         
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ error: 'Atleta não encontrado' });
+        if (inscricoes && inscricoes.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Não é possível excluir atleta com inscrições em competições. Desative o atleta em vez de excluí-lo.'
+            });
         }
+        
+        // Buscar dados do atleta antes de deletar para o log
+        const atleta = await atletaService.getById(id);
+        
+        // Deletar atleta
+        await atletaService.delete(id);
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'DELETE_ATLETA',
+            detalhes: `Atleta deletado: ${atleta?.nome || 'N/A'}`,
+            tipo_usuario: req.user.tipo,
+            resource_type: 'atleta',
+            resource_id: id
+        });
         
         res.json({
             success: true,
-            message: 'Atleta excluído com sucesso'
+            message: 'Atleta deletado com sucesso'
         });
         
     } catch (error) {
-        console.log('❌ Erro ao excluir atleta:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao deletar atleta:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// ==================== ROTAS DE EQUIPES ====================
-
-// Buscar equipes
-app.get('/api/equipes', autenticarToken, async (req, res) => {
+// Rota para listar equipes
+app.get('/api/equipes', verificarToken, async (req, res) => {
     try {
-        const equipesCollection = db.collection('equipes');
-        const equipes = await equipesCollection.find({}).toArray();
+        const equipes = await equipeService.getAll();
         
-        // Contar atletas por equipe
-        const atletasCollection = db.collection('atletas');
-        const equipesComContagem = await Promise.all(
-            equipes.map(async (equipe) => {
-                const count = await atletasCollection.countDocuments({ id_equipe: equipe._id.toString() });
-                return {
-                    ...equipe,
-                    _id: equipe._id.toString(),
-                    total_atletas: count
-                };
-            })
-        );
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'LIST_EQUIPES',
+            detalhes: 'Listagem de equipes',
+            tipo_usuario: req.user.tipo
+        });
         
-        res.json(equipesComContagem);
+        res.json({
+            success: true,
+            data: equipes
+        });
+        
     } catch (error) {
-        console.log('❌ Erro ao buscar equipes:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao buscar equipes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// Criar equipe
-app.post('/api/equipes', autenticarToken, async (req, res) => {
+// Rota para criar nova equipe
+app.post('/api/equipes', verificarToken, async (req, res) => {
     try {
-        const equipesCollection = db.collection('equipes');
+        const dadosEquipe = req.body;
         
-        // Verificar se equipe já existe
-        const equipeExistente = await equipesCollection.findOne({ nome: req.body.nome });
+        // Verificar se nome da equipe já existe
+        const equipeExistente = await equipeService.getByNome(dadosEquipe.nome_equipe);
+        
         if (equipeExistente) {
-            return res.status(400).json({ error: 'Equipe já existe' });
+            return res.status(400).json({
+                success: false,
+                message: `Nome da equipe "${dadosEquipe.nome_equipe}" já está cadastrado no sistema.`
+            });
         }
         
-        const equipe = {
-            ...req.body,
-            data_criacao: new Date()
-        };
+        // Criar equipe
+        const novaEquipe = await equipeService.create(dadosEquipe);
         
-        const result = await equipesCollection.insertOne(equipe);
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'CREATE_EQUIPE',
+            detalhes: `Equipe criada: ${dadosEquipe.nome_equipe}`,
+            tipo_usuario: req.user.tipo,
+            resource_type: 'equipe',
+            resource_id: novaEquipe
+        });
         
         res.json({
             success: true,
-            id: result.insertedId.toString(),
-            message: 'Equipe criada com sucesso'
+            message: 'Equipe criada com sucesso',
+            data: { id: novaEquipe }
         });
         
     } catch (error) {
-        console.log('❌ Erro ao criar equipe:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao criar equipe:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// ==================== ROTAS DE CATEGORIAS ====================
-
-// Buscar categorias
-app.get('/api/categorias', autenticarToken, async (req, res) => {
+// Rota para listar categorias
+app.get('/api/categorias', verificarToken, async (req, res) => {
     try {
-        const categoriasCollection = db.collection('categorias');
-        const categorias = await categoriasCollection.find({}).toArray();
-        
-        const categoriasFormatadas = categorias.map(categoria => ({
-            ...categoria,
-            _id: categoria._id.toString()
-        }));
-        
-        res.json(categoriasFormatadas);
-    } catch (error) {
-        console.log('❌ Erro ao buscar categorias:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// ==================== ROTAS DE COMPETIÇÕES ====================
-
-// Buscar competições
-app.get('/api/competicoes', autenticarToken, async (req, res) => {
-    try {
-        const competicoesCollection = db.collection('competicoes');
-        const competicoes = await competicoesCollection.find({}).toArray();
-        
-        // Contar inscrições por competição
-        const inscricoesCollection = db.collection('inscricoes');
-        const competicoesComContagem = await Promise.all(
-            competicoes.map(async (competicao) => {
-                const count = await inscricoesCollection.countDocuments({ competicao_id: competicao._id.toString() });
-                return {
-                    ...competicao,
-                    _id: competicao._id.toString(),
-                    total_inscricoes: count
-                };
-            })
-        );
-        
-        res.json(competicoesComContagem);
-    } catch (error) {
-        console.log('❌ Erro ao buscar competições:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Criar competição
-app.post('/api/competicoes', autenticarToken, async (req, res) => {
-    try {
-        const competicoesCollection = db.collection('competicoes');
-        
-        const competicao = {
-            ...req.body,
-            data_criacao: new Date(),
-            status: 'AGENDADA'
-        };
-        
-        const result = await competicoesCollection.insertOne(competicao);
+        const categorias = await categoriaService.getAll();
         
         res.json({
             success: true,
-            id: result.insertedId.toString(),
-            message: 'Competição criada com sucesso'
+            data: categorias
         });
         
     } catch (error) {
-        console.log('❌ Erro ao criar competição:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao buscar categorias:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// ==================== ROTAS DE INSCRIÇÕES ====================
-
-// Buscar inscrições
-app.get('/api/inscricoes', autenticarToken, async (req, res) => {
+// Rota para listar competições
+app.get('/api/competicoes', verificarToken, async (req, res) => {
     try {
-        const inscricoesCollection = db.collection('inscricoes');
-        const inscricoes = await inscricoesCollection.find({}).toArray();
+        const competicoes = await competicaoService.getAll();
         
-        // Buscar dados relacionados
-        const atletasCollection = db.collection('atletas');
-        const competicoesCollection = db.collection('competicoes');
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'LIST_COMPETICOES',
+            detalhes: 'Listagem de competições',
+            tipo_usuario: req.user.tipo
+        });
         
-        const inscricoesCompleta = await Promise.all(
-            inscricoes.map(async (inscricao) => {
-                const atleta = await atletasCollection.findOne({ _id: new ObjectId(inscricao.atleta_id) });
-                const competicao = await competicoesCollection.findOne({ _id: new ObjectId(inscricao.competicao_id) });
-                
-                return {
-                    ...inscricao,
-                    _id: inscricao._id.toString(),
-                    atleta_nome: atleta ? atleta.nome : 'N/A',
-                    competicao_nome: competicao ? competicao.nome : 'N/A'
-                };
-            })
+        res.json({
+            success: true,
+            data: competicoes
+        });
+        
+    } catch (error) {
+        console.error('Erro ao buscar competições:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para criar nova competição
+app.post('/api/competicoes', verificarToken, async (req, res) => {
+    try {
+        const dadosCompeticao = req.body;
+        
+        // Criar competição
+        const novaCompeticao = await competicaoService.create(dadosCompeticao);
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'CREATE_COMPETICAO',
+            detalhes: `Competição criada: ${dadosCompeticao.nome_competicao}`,
+            tipo_usuario: req.user.tipo,
+            resource_type: 'competicao',
+            resource_id: novaCompeticao
+        });
+        
+        res.json({
+            success: true,
+            message: 'Competição criada com sucesso',
+            data: { id: novaCompeticao }
+        });
+        
+    } catch (error) {
+        console.error('Erro ao criar competição:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para listar inscrições
+app.get('/api/inscricoes', verificarToken, async (req, res) => {
+    try {
+        const { competicaoId } = req.query;
+        
+        let inscricoes;
+        if (competicaoId) {
+            inscricoes = await inscricaoService.getByCompeticao(competicaoId);
+        } else {
+            inscricoes = await inscricaoService.getAll();
+        }
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'LIST_INSCRICOES',
+            detalhes: `Listagem de inscrições${competicaoId ? ` para competição ${competicaoId}` : ''}`,
+            tipo_usuario: req.user.tipo
+        });
+        
+        res.json({
+            success: true,
+            data: inscricoes
+        });
+        
+    } catch (error) {
+        console.error('Erro ao buscar inscrições:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para criar nova inscrição
+app.post('/api/inscricoes', verificarToken, async (req, res) => {
+    try {
+        const dadosInscricao = req.body;
+        
+        // Verificar se atleta já está inscrito na competição
+        const inscricaoExistente = await inscricaoService.getByAtletaAndCompeticao(
+            dadosInscricao.id_atleta, 
+            dadosInscricao.id_competicao
         );
-        
-        res.json(inscricoesCompleta);
-    } catch (error) {
-        console.log('❌ Erro ao buscar inscrições:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Criar inscrição
-app.post('/api/inscricoes', autenticarToken, async (req, res) => {
-    try {
-        const inscricoesCollection = db.collection('inscricoes');
-        
-        // Verificar se atleta já está inscrito nesta competição
-        const inscricaoExistente = await inscricoesCollection.findOne({
-            atleta_id: req.body.atleta_id,
-            competicao_id: req.body.competicao_id
-        });
         
         if (inscricaoExistente) {
-            return res.status(400).json({ error: 'Atleta já está inscrito nesta competição' });
+            return res.status(400).json({
+                success: false,
+                message: 'Atleta já está inscrito nesta competição'
+            });
         }
         
-        const inscricao = {
-            ...req.body,
-            data_inscricao: new Date(),
-            status: 'INSCRITO'
-        };
+        // Criar inscrição
+        const novaInscricao = await inscricaoService.create(dadosInscricao);
         
-        const result = await inscricoesCollection.insertOne(inscricao);
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'CREATE_INSCRICAO',
+            detalhes: `Inscrição criada para atleta ${dadosInscricao.id_atleta}`,
+            tipo_usuario: req.user.tipo,
+            resource_type: 'inscricao',
+            resource_id: novaInscricao
+        });
         
         res.json({
             success: true,
-            id: result.insertedId.toString(),
-            message: 'Inscrição criada com sucesso'
+            message: 'Inscrição criada com sucesso',
+            data: { id: novaInscricao }
         });
         
     } catch (error) {
-        console.log('❌ Erro ao criar inscrição:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao criar inscrição:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// ==================== ROTAS DE RESULTADOS ====================
-
-// Buscar resultados
-app.get('/api/resultados', autenticarToken, async (req, res) => {
+// Rota para listar logs de atividades
+app.get('/api/logs', verificarToken, async (req, res) => {
     try {
-        const resultadosCollection = db.collection('resultados');
-        const resultados = await resultadosCollection.find({}).toArray();
+        const { limit = 100, offset = 0 } = req.query;
         
-        // Buscar dados relacionados
-        const atletasCollection = db.collection('atletas');
-        const competicoesCollection = db.collection('competicoes');
-        
-        const resultadosCompletos = await Promise.all(
-            resultados.map(async (resultado) => {
-                const atleta = await atletasCollection.findOne({ _id: new ObjectId(resultado.atleta_id) });
-                const competicao = await competicoesCollection.findOne({ _id: new ObjectId(resultado.competicao_id) });
-                
-                return {
-                    ...resultado,
-                    _id: resultado._id.toString(),
-                    atleta_nome: atleta ? atleta.nome : 'N/A',
-                    competicao_nome: competicao ? competicao.nome : 'N/A'
-                };
-            })
-        );
-        
-        res.json(resultadosCompletos);
-    } catch (error) {
-        console.log('❌ Erro ao buscar resultados:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Criar resultado
-app.post('/api/resultados', autenticarToken, async (req, res) => {
-    try {
-        const resultadosCollection = db.collection('resultados');
-        
-        const resultado = {
-            ...req.body,
-            data_registro: new Date(),
-            total: (parseFloat(req.body.agachamento) || 0) + (parseFloat(req.body.supino) || 0) + (parseFloat(req.body.terra) || 0)
-        };
-        
-        const result = await resultadosCollection.insertOne(resultado);
+        const logs = await logService.getAll(parseInt(limit), parseInt(offset));
         
         res.json({
             success: true,
-            id: result.insertedId.toString(),
-            message: 'Resultado registrado com sucesso'
+            data: logs
         });
         
     } catch (error) {
-        console.log('❌ Erro ao criar resultado:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao buscar logs:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// ==================== ROTAS DE RELATÓRIOS ====================
-
-// Dashboard/estatísticas
-app.get('/api/dashboard', autenticarToken, async (req, res) => {
+// Rota para limpar logs
+app.delete('/api/logs', verificarToken, async (req, res) => {
     try {
-        const atletasCollection = db.collection('atletas');
-        const equipesCollection = db.collection('equipes');
-        const competicoesCollection = db.collection('competicoes');
-        const inscricoesCollection = db.collection('inscricoes');
-        const resultadosCollection = db.collection('resultados');
+        // Verificar se é admin
+        if (req.user.tipo !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acesso negado. Apenas administradores podem limpar logs.'
+            });
+        }
         
-        const totalAtletas = await atletasCollection.countDocuments({});
-        const totalEquipes = await equipesCollection.countDocuments({});
-        const totalCompeticoes = await competicoesCollection.countDocuments({});
-        const totalInscricoes = await inscricoesCollection.countDocuments({});
-        const totalResultados = await resultadosCollection.countDocuments({});
+        // Limpar logs
+        await logService.clearAll();
         
-        // Atletas por equipe
-        const pipeline = [
-            {
-                $lookup: {
-                    from: 'equipes',
-                    localField: 'id_equipe',
-                    foreignField: '_id',
-                    as: 'equipe'
-                }
-            },
-            {
-                $group: {
-                    _id: '$id_equipe',
-                    count: { $sum: 1 },
-                    equipe_nome: { $first: '$equipe.nome' }
-                }
-            },
-            { $sort: { count: -1 } }
-        ];
-        
-        const atletasPorEquipe = await atletasCollection.aggregate(pipeline).toArray();
-        
-        // Top 10 maiores totais
-        const top10Totais = await resultadosCollection
-            .find({})
-            .sort({ total: -1 })
-            .limit(10)
-            .toArray();
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'CLEAR_LOGS',
+            detalhes: 'Logs de atividades limpos',
+            tipo_usuario: req.user.tipo
+        });
         
         res.json({
-            totais: {
-                atletas: totalAtletas,
-                equipes: totalEquipes,
-                competicoes: totalCompeticoes,
-                inscricoes: totalInscricoes,
-                resultados: totalResultados
-            },
-            atletas_por_equipe: atletasPorEquipe,
-            top10_totais: top10Totais
+            success: true,
+            message: 'Logs limpos com sucesso'
         });
         
     } catch (error) {
-        console.log('❌ Erro ao buscar dashboard:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro ao limpar logs:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// ==================== ROTAS DE UPLOAD ====================
-
-// Upload de documentos
-app.post('/api/upload-documento', autenticarToken, upload.single('documento'), async (req, res) => {
+// Rota para upload de arquivos
+app.post('/api/upload', verificarToken, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+            return res.status(400).json({
+                success: false,
+                message: 'Nenhum arquivo foi enviado'
+            });
         }
         
-        const { atleta_id, tipo_documento } = req.body;
+        // Upload para Supabase Storage
+        const fileData = await fileService.upload(req.file);
         
-        // Atualizar atleta com o caminho do documento
-        const atletasCollection = db.collection('atletas');
-        const updateField = {};
-        updateField[tipo_documento] = req.file.filename;
-        
-        await atletasCollection.updateOne(
-            { _id: new ObjectId(atleta_id) },
-            { $set: updateField }
-        );
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'UPLOAD_FILE',
+            detalhes: `Arquivo enviado: ${req.file.originalname}`,
+            tipo_usuario: req.user.tipo
+        });
         
         res.json({
             success: true,
-            filename: req.file.filename,
-            message: 'Documento enviado com sucesso'
+            message: 'Arquivo enviado com sucesso',
+            data: fileData
         });
         
     } catch (error) {
-        console.log('❌ Erro ao fazer upload:', error.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro no upload:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
     }
 });
 
-// ==================== ROTAS AUXILIARES ====================
-
-// Rota de health check
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        message: 'Sistema FEPERJ funcionando',
-        timestamp: new Date().toISOString()
-    });
+// Rota para obter usuários
+app.get('/api/usuarios', verificarToken, async (req, res) => {
+    try {
+        // Verificar se é admin
+        if (req.user.tipo !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acesso negado. Apenas administradores podem listar usuários.'
+            });
+        }
+        
+        const usuarios = await usuarioService.getAll();
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'LIST_USUARIOS',
+            detalhes: 'Listagem de usuários',
+            tipo_usuario: req.user.tipo
+        });
+        
+        res.json({
+            success: true,
+            data: usuarios
+        });
+        
+    } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
 });
 
-// Função para gerar matrícula
-function gerarMatricula(cpf) {
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    const ultimosDigitos = cpfLimpo.slice(-4);
-    const timestamp = moment().format('YYYYMMDDHHmmss');
-    return `FEP${timestamp}${ultimosDigitos}`;
-}
+// Rota para criar usuário
+app.post('/api/usuarios', verificarToken, async (req, res) => {
+    try {
+        // Verificar se é admin
+        if (req.user.tipo !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Acesso negado. Apenas administradores podem criar usuários.'
+            });
+        }
+        
+        const dadosUsuario = req.body;
+        
+        // Verificar se login já existe
+        const usuarioExistente = await usuarioService.getByLogin(dadosUsuario.login);
+        
+        if (usuarioExistente) {
+            return res.status(400).json({
+                success: false,
+                message: 'Login já existe'
+            });
+        }
+        
+        // Hash da senha
+        const hashedPassword = await bcrypt.hash(dadosUsuario.senha, 10);
+        
+        // Se o usuário não for admin, criar equipe automaticamente
+        if (dadosUsuario.tipo === 'usuario') {
+            // Criar equipe primeiro
+            const novaEquipe = await equipeService.create({
+                nome_equipe: dadosUsuario.nome_equipe || dadosUsuario.nome,
+                cidade: dadosUsuario.estado || 'A definir',
+                tecnico: dadosUsuario.nome,
+                telefone: '',
+                email: '',
+                status: 'ATIVA'
+            });
+            
+            // Criar o usuário com referência à equipe
+            const novoUsuario = await usuarioService.create({
+                ...dadosUsuario,
+                senha: hashedPassword,
+                chefe_equipe: true,
+                id_equipe: novaEquipe
+            });
+            
+            // Atualizar a equipe com o ID do chefe
+            await equipeService.update(novaEquipe, { id_chefe: novoUsuario });
+            
+            // Log da atividade
+            await logService.create({
+                usuario: req.user.nome,
+                acao: 'CREATE_USUARIO',
+                detalhes: `Usuário criado: ${dadosUsuario.nome}`,
+                tipo_usuario: req.user.tipo,
+                resource_type: 'usuario',
+                resource_id: novoUsuario
+            });
+            
+            res.json({
+                success: true,
+                message: 'Usuário e equipe criados com sucesso',
+                data: { id: novoUsuario }
+            });
+        } else {
+            // Para administradores, criar normalmente sem equipe
+            const novoUsuario = await usuarioService.create({
+                ...dadosUsuario,
+                senha: hashedPassword,
+                chefe_equipe: false
+            });
+            
+            // Log da atividade
+            await logService.create({
+                usuario: req.user.nome,
+                acao: 'CREATE_USUARIO',
+                detalhes: `Usuário criado: ${dadosUsuario.nome}`,
+                tipo_usuario: req.user.tipo,
+                resource_type: 'usuario',
+                resource_id: novoUsuario
+            });
+            
+            res.json({
+                success: true,
+                message: 'Usuário criado com sucesso',
+                data: { id: novoUsuario }
+            });
+        }
+        
+    } catch (error) {
+        console.error('Erro ao criar usuário:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
 
-// Rota para servir páginas HTML
+// Rota para verificar status da conexão
+app.get('/api/status', async (req, res) => {
+    try {
+        // Testar conexão com Supabase
+        const usuarios = await usuarioService.getAll();
+        
+        res.json({
+            success: true,
+            message: 'Conexão com Supabase OK',
+            timestamp: new Date().toISOString(),
+            totalUsuarios: usuarios.length
+        });
+        
+    } catch (error) {
+        console.error('Erro ao verificar status:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro na conexão com Supabase',
+            error: error.message
+        });
+    }
+});
+
+// Rota para servir arquivos estáticos
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/atletas', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'atletas.html'));
-});
-
-app.get('/equipes', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'equipes.html'));
-});
-
-app.get('/competicoes', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'competicoes.html'));
-});
-
-app.get('/inscricoes', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'inscricoes.html'));
-});
-
-app.get('/resultados', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'resultados.html'));
-});
-
-app.get('/relatorios', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'relatorios.html'));
-});
-
 // Inicializar servidor
 async function iniciarServidor() {
-    const conectado = await conectarMongoDB();
-    
-    if (!conectado) {
-        console.log('❌ Não foi possível conectar ao MongoDB. Servidor não iniciado.');
+    try {
+        console.log('🚀 Iniciando servidor FEPERJ...');
+        
+        // Conectar ao Supabase
+        const conectado = await conectarSupabase();
+        if (!conectado) {
+            console.log('❌ Falha na conexão com Supabase. Servidor será iniciado mesmo assim para debug.');
+        }
+        
+        // Iniciar servidor
+        app.listen(PORT, () => {
+            console.log(`✅ Servidor rodando na porta ${PORT}`);
+            console.log(`🌐 Acesse: http://localhost:${PORT}`);
+            console.log(`📊 API: http://localhost:${PORT}/api`);
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao iniciar servidor:', error);
         process.exit(1);
     }
-    
-    app.listen(PORT, () => {
-        console.log('🚀 Servidor FEPERJ iniciado na porta', PORT);
-        console.log('📱 Sistema online em: http://localhost:' + PORT);
-        console.log('🔗 MongoDB Atlas conectado');
-    });
 }
 
+// Tratamento de sinais para encerramento graceful
+process.on('SIGINT', () => {
+    console.log('\n🛑 Encerrando servidor...');
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.log('\n🛑 Encerrando servidor...');
+    process.exit(0);
+});
+
+// Iniciar servidor
 iniciarServidor();
