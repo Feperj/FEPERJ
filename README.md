@@ -5,7 +5,7 @@ Sistema web completo para gestão de atletas, equipes, competições e inscriç�
 ## 🚀 Tecnologias
 
 - **Backend**: Node.js + Express
-- **Banco de Dados**: MongoDB Atlas
+- **Banco de Dados**: Supabase
 - **Frontend**: HTML + JavaScript (Vanilla)
 - **Autenticação**: JWT (JSON Web Tokens)
 - **Estilização**: Tailwind CSS
