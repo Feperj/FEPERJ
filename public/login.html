@@ -208,7 +208,7 @@
                     
                     // Salvar dados no localStorage
                     localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('userInfo', JSON.stringify(data.usuario));
+                    localStorage.setItem('userInfo', JSON.stringify(data.user));
                     localStorage.setItem('loginTime', new Date().getTime().toString());
                     
                     // Redirecionar após 1 segundo
@@ -218,7 +218,7 @@
                     
                 } else {
                     // Erro no login
-                    showError(data.error || 'Credenciais inválidas');
+                    showError(data.message || 'Credenciais inválidas');
                 }
                 
             } catch (error) {

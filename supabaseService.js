@@ -831,7 +831,9 @@ const dashboardService = {
     // Agrupar atletas por equipe
     const atletasPorEquipe = equipes.map(equipe => ({
       equipe: equipe.nome_equipe,
-      quantidade: atletas.filter(a => a.id_equipe === equipe.id).length
+      equipe_nome: equipe.nome_equipe, // Para compatibilidade com frontend HTML
+      quantidade: atletas.filter(a => a.id_equipe === equipe.id).length,
+      count: atletas.filter(a => a.id_equipe === equipe.id).length // Para compatibilidade com frontend HTML
     }));
 
     // Top 10 maiores totais
