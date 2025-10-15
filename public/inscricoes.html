@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrições - Sistema FEPERJ</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+        }
+        
+        .topbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 4rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-content {
+            margin-top: 4rem;
+            padding: 2rem;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 0 4px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            margin-right: 2rem;
+        }
+        
+        .user-section {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .badge-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        
+        .badge-danger {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .badge-info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+        
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                height: auto;
+                padding: 0.5rem;
+            }
+            
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                margin: 0.5rem 0;
+            }
+            
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .user-section {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+            
+            .main-content {
+                margin-top: 8rem;
+                padding: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo-section {
+                margin-right: 1rem;
+            }
+            
+            .nav-link {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+            
+            .nav-link i {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Topbar -->
+    <div class="topbar">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <i class="fas fa-dumbbell text-white text-2xl mr-3"></i>
+            <div>
+                <h1 class="text-xl font-bold text-white">FEPERJ</h1>
+                <p class="text-white opacity-80 text-xs">Sistema de Gestão</p>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-link">
+                <i class="fas fa-tachometer-alt mr-2"></i>
+                Dashboard
+            </a>
+            <a href="atletas.html" class="nav-link">
+                <i class="fas fa-users mr-2"></i>
+                Atletas
+            </a>
+            <a href="equipes.html" class="nav-link">
+                <i class="fas fa-shield-alt mr-2"></i>
+                Equipes
+            </a>
+            <a href="competicoes.html" class="nav-link">
+                <i class="fas fa-trophy mr-2"></i>
+                Competições
+            </a>
+            <a href="inscricoes.html" class="nav-link active">
+                <i class="fas fa-clipboard-list mr-2"></i>
+                Inscrições
+            </a>
+            <a href="resultados.html" class="nav-link">
+                <i class="fas fa-medal mr-2"></i>
+                Resultados
+            </a>
+        </nav>
+        
+        <!-- User Section -->
+        <div class="user-section">
+            <div class="flex items-center text-white">
+                <i class="fas fa-user-circle text-xl mr-2"></i>
+                <div>
+                    <div class="font-semibold text-sm" id="userName">Carregando...</div>
+                    <div class="text-xs opacity-80" id="userRole">Carregando...</div>
+                </div>
+            </div>
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors text-sm">
+                <i class="fas fa-sign-out-alt mr-1"></i>
+                Sair
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Inscrições</h2>
+            <p class="text-gray-600" id="pageSubtitle">Gerenciamento de inscrições em competições</p>
+        </div>
+
+        <!-- Competição Info -->
+        <div id="competicaoInfo" class="card mb-6" style="display: none;">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800" id="competicaoNome">Nome da Competição</h3>
+                    <p class="text-gray-600" id="competicaoData">Data da Competição</p>
+                    <p class="text-gray-600" id="competicaoLocal">Local da Competição</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Status</p>
+                    <span id="competicaoStatus" class="badge badge-info">Agendada</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Bar -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <button onclick="voltarCompeticoes()" class="btn-primary">
+                    <i class="fas fa-arrow-left mr-2"></i>Voltar às Competições
+                </button>
+                <button onclick="novaInscricao()" class="btn-success" id="btnNovaInscricao">
+                    <i class="fas fa-plus mr-2"></i>Nova Inscrição
+                </button>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="exportarExcel()" class="btn-primary" id="btnExportExcel" style="display: none;">
+                    <i class="fas fa-file-excel mr-2"></i>Exportar Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div id="alertContainer"></div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Total de Inscrições</p>
+                        <p class="text-2xl font-bold text-gray-800" id="totalInscricoes">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Inscrições Confirmadas</p>
+                        <p class="text-2xl font-bold text-green-600" id="inscricoesConfirmadas">0</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Receita Total</p>
+                        <p class="text-2xl font-bold text-purple-600" id="receitaTotal">R$ 0,00</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-lg">
+                        <i class="fas fa-money-bill-wave text-purple-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Equipes Participantes</p>
+                        <p class="text-2xl font-bold text-orange-600" id="equipesParticipantes">0</p>
+                    </div>
+                    <div class="bg-orange-100 p-3 rounded-lg">
+                        <i class="fas fa-users text-orange-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inscrições Table -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Lista de Inscrições</h3>
+            </div>
+            
+            <div id="loadingContainer" class="loading">
+                <div class="spinner"></div>
+            </div>
+            
+            <div id="tableContainer" style="display: none;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Atleta</th>
+                            <th>Equipe</th>
+                            <th>Modalidade</th>
+                            <th>Categoria Peso</th>
+                            <th>Categoria Idade</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inscricoesTableBody">
+                        <!-- Conteúdo será preenchido dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="emptyState" style="display: none;" class="text-center py-12">
+                <i class="fas fa-clipboard-list text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">Nenhuma inscrição encontrada</h3>
+                <p class="text-gray-500 mb-6">Comece criando uma nova inscrição</p>
+                <button onclick="novaInscricao()" class="btn-success">
+                    <i class="fas fa-plus mr-2"></i>Nova Inscrição
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nova Inscrição -->
+    <div id="inscricaoModal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800" id="modalTitle">Nova Inscrição</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="inscricaoForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="modalidade">Modalidade <span class="text-red-500">*</span></label>
+                    <select id="modalidade" required>
+                        <option value="">Selecione...</option>
+                        <option value="CLASSICA">Clássica</option>
+                        <option value="EQUIPADO">Equipado</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Selecionar Atletas <span class="text-red-500">*</span></label>
+                    <div id="atletasList" class="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-4">
+                        <!-- Lista de atletas será preenchida dinamicamente -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="observacoes">Observações</label>
+                    <textarea id="observacoes" rows="3" placeholder="Observações sobre a inscrição"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <i class="fas fa-save mr-2"></i>Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="inscricoes-script.js"></script>
+</body>
+</html>

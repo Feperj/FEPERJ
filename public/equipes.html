@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Equipes - Sistema FEPERJ</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f7fafc;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .topbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 4rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-content {
+            margin-top: 4rem;
+            padding: 2rem;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 0 4px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            margin-right: 2rem;
+        }
+        
+        .user-section {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 12px;
+            color: #718096;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: #f7fafc;
+        }
+        
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .badge-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        
+        .badge-danger {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                height: auto;
+                padding: 0.5rem;
+            }
+            
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                margin: 0.5rem 0;
+            }
+            
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .user-section {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+            
+            .main-content {
+                margin-top: 8rem;
+                padding: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo-section {
+                margin-right: 1rem;
+            }
+            
+            .nav-link {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+            
+            .nav-link i {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Topbar -->
+    <div class="topbar">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <i class="fas fa-dumbbell text-white text-2xl mr-3"></i>
+            <div>
+                <h1 class="text-xl font-bold text-white">FEPERJ</h1>
+                <p class="text-white opacity-80 text-xs">Sistema de Gestão</p>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-link">
+                <i class="fas fa-tachometer-alt mr-2"></i>
+                Dashboard
+            </a>
+            <a href="atletas.html" class="nav-link">
+                <i class="fas fa-users mr-2"></i>
+                Atletas
+            </a>
+            <a href="equipes.html" class="nav-link active">
+                <i class="fas fa-shield-alt mr-2"></i>
+                Equipes
+            </a>
+            <a href="competicoes.html" class="nav-link">
+                <i class="fas fa-trophy mr-2"></i>
+                Competições
+            </a>
+            <a href="inscricoes.html" class="nav-link">
+                <i class="fas fa-clipboard-list mr-2"></i>
+                Inscrições
+            </a>
+            <a href="resultados.html" class="nav-link">
+                <i class="fas fa-medal mr-2"></i>
+                Resultados
+            </a>
+        </nav>
+        
+        <!-- User Section -->
+        <div class="user-section">
+            <div class="flex items-center text-white">
+                <i class="fas fa-user-circle text-xl mr-2"></i>
+                <div>
+                    <div class="font-semibold text-sm" id="userName">Carregando...</div>
+                    <div class="text-xs opacity-80" id="userRole">Carregando...</div>
+                </div>
+            </div>
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors text-sm">
+                <i class="fas fa-sign-out-alt mr-1"></i>
+                Sair
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Breadcrumb -->
+        <div class="mb-6">
+            <nav class="text-sm">
+                <a href="dashboard.html" class="text-purple-600 hover:text-purple-700">Dashboard</a>
+                <span class="mx-2 text-gray-500">/</span>
+                <span class="text-gray-700">Equipes</span>
+            </nav>
+        </div>
+
+        <!-- Page Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Gestão de Equipes</h2>
+                <p class="text-gray-600">Gerencie as equipes de powerlifting cadastradas</p>
+            </div>
+            <button onclick="openModal()" class="btn-primary">
+                <i class="fas fa-plus mr-2"></i>Nova Equipe
+            </button>
+        </div>
+
+        <!-- Alerts -->
+        <div id="alertContainer"></div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Total de Equipes</p>
+                        <p class="text-2xl font-bold text-gray-800" id="totalEquipes">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-lg">
+                        <i class="fas fa-users text-purple-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Equipes Ativas</p>
+                        <p class="text-2xl font-bold text-green-600" id="equipesAtivas">0</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Total de Atletas</p>
+                        <p class="text-2xl font-bold text-blue-600" id="totalAtletas">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <i class="fas fa-user-friends text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm mb-1">Média Atletas/Equipe</p>
+                        <p class="text-2xl font-bold text-orange-600" id="mediaAtletas">0</p>
+                    </div>
+                    <div class="bg-orange-100 p-3 rounded-lg">
+                        <i class="fas fa-chart-line text-orange-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Equipes Cadastradas</h3>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingContainer" class="loading">
+                <div class="spinner"></div>
+            </div>
+
+            <!-- Table -->
+            <div id="tableContainer" class="table-container" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome da Equipe</th>
+                            <th>Cidade</th>
+                            <th>Técnico</th>
+                            <th>Telefone</th>
+                            <th>Email</th>
+                            <th>Atletas</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipesTableBody">
+                        <!-- Conteúdo será preenchido dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-12" style="display: none;">
+                <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+                <p class="text-gray-500 text-lg mb-2">Nenhuma equipe cadastrada</p>
+                <p class="text-gray-400 mb-4">Comece adicionando uma nova equipe</p>
+                <button onclick="openModal()" class="btn-primary">
+                    <i class="fas fa-plus mr-2"></i>Adicionar Primeira Equipe
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="equipeModal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800" id="modalTitle">Nova Equipe</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="equipeForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="nomeEquipe">Nome da Equipe <span class="text-red-500">*</span></label>
+                    <input type="text" id="nomeEquipe" required placeholder="Ex: Power Rio">
+                </div>
+
+                <div class="form-group">
+                    <label for="cidade">Cidade <span class="text-red-500">*</span></label>
+                    <input type="text" id="cidade" required placeholder="Ex: Rio de Janeiro">
+                </div>
+
+                <div class="form-group">
+                    <label for="tecnico">Técnico</label>
+                    <input type="text" id="tecnico" placeholder="Nome do técnico responsável">
+                </div>
+
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" placeholder="contato@equipe.com">
+                </div>
+
+                <!-- Seção de Permissões do Usuário (apenas ao editar) -->
+                <div id="permissoesSection" style="display: none;">
+                    <hr class="my-6">
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <h4 class="text-lg font-bold text-gray-800 mb-2">
+                            <i class="fas fa-user-cog mr-2 text-blue-600"></i>
+                            Gerenciar Permissões do Usuário
+                        </h4>
+                        <p class="text-sm text-gray-600">
+                            Alterar o tipo de acesso do usuário responsável por esta equipe
+                        </p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginUsuarioEdit">Login do Usuário <span class="text-red-500">*</span></label>
+                        <input type="text" id="loginUsuarioEdit" placeholder="Ex: 12345678900">
+                        <small class="text-gray-500">CPF ou identificador único (números)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nomeUsuarioEdit">Nome do Responsável <span class="text-red-500">*</span></label>
+                        <input type="text" id="nomeUsuarioEdit" placeholder="Ex: João Silva">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="senhaUsuarioEdit">Nova Senha</label>
+                        <input type="password" id="senhaUsuarioEdit" placeholder="Deixe em branco para manter a senha atual">
+                        <small class="text-gray-500">Mínimo 6 caracteres. Deixe em branco para manter a senha atual</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="novoTipoUsuario">Novo Tipo de Acesso <span class="text-red-500">*</span></label>
+                        <select id="novoTipoUsuario">
+                            <option value="">Selecione...</option>
+                            <option value="usuario">👤 Usuário (Acesso Limitado - Apenas sua equipe)</option>
+                            <option value="admin">👑 Administrador (Acesso Total - Todo o sistema)</option>
+                        </select>
+                        <div class="mt-2 p-3 bg-yellow-50 rounded-lg">
+                            <small class="text-yellow-800">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                <strong>Atenção:</strong> Alterar permissões pode afetar o acesso do usuário ao sistema
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção de Usuário (apenas ao criar) -->
+                <div id="usuarioSection">
+                    <hr class="my-6">
+                    
+                    <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                        <h4 class="text-lg font-bold text-gray-800 mb-2">
+                            <i class="fas fa-user-shield mr-2 text-purple-600"></i>
+                            Criar Usuário para Equipe
+                        </h4>
+                        <p class="text-sm text-gray-600">
+                            Cada equipe terá um usuário responsável para acessar o sistema
+                        </p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginUsuario">Login do Usuário <span class="text-red-500">*</span></label>
+                        <input type="text" id="loginUsuario" placeholder="Ex: 12345678900">
+                        <small class="text-gray-500">CPF ou identificador único (números)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nomeUsuario">Nome do Responsável <span class="text-red-500">*</span></label>
+                        <input type="text" id="nomeUsuario" placeholder="Ex: João Silva">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="senhaUsuario">Senha <span class="text-red-500">*</span></label>
+                        <input type="password" id="senhaUsuario" placeholder="Mínimo 6 caracteres">
+                        <small class="text-gray-500">Senha para o responsável acessar o sistema</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipoUsuario">Tipo de Acesso <span class="text-red-500">*</span></label>
+                        <select id="tipoUsuario">
+                            <option value="">Selecione...</option>
+                            <option value="usuario">👤 Usuário (Acesso Limitado - Apenas sua equipe)</option>
+                            <option value="admin">👑 Administrador (Acesso Total - Todo o sistema)</option>
+                        </select>
+                        <div class="mt-2 p-3 bg-blue-50 rounded-lg">
+                            <small class="text-blue-800">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                <strong>Usuário:</strong> Gerencia apenas atletas da sua equipe<br>
+                                <strong>Admin:</strong> Gerencia todo o sistema (equipes, atletas, competições)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <i class="fas fa-save mr-2"></i>Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        let equipes = [];
+        let editingId = null;
+
+        let currentUser = null;
+
+        // Verificar autenticação e permissões
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('authToken');
+            const userInfo = localStorage.getItem('userInfo');
+            
+            if (!token || !userInfo) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                currentUser = JSON.parse(userInfo);
+                document.getElementById('userName').textContent = currentUser.nome;
+                
+                // Verificar se é admin
+                if (currentUser.tipo !== 'admin') {
+                    showAlert('Apenas administradores podem acessar esta página.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                    return;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar informações do usuário');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            loadEquipes();
+        });
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('loginTime');
+            window.location.href = 'login.html';
+        }
+
+        // Mostrar alerta
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Carregar equipes
+        async function loadEquipes() {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/api/equipes`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    equipes = data.data.equipes;
+                    renderEquipes();
+                    updateStats();
+                } else {
+                    throw new Error(data.error || 'Erro ao carregar equipes');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar equipes:', error);
+                showAlert('Erro ao carregar equipes. Tente novamente.', 'error');
+            } finally {
+                document.getElementById('loadingContainer').style.display = 'none';
+            }
+        }
+
+        // Renderizar equipes
+        function renderEquipes() {
+            const tbody = document.getElementById('equipesTableBody');
+            const tableContainer = document.getElementById('tableContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (equipes.length === 0) {
+                tableContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            tableContainer.style.display = 'block';
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = equipes.map(equipe => {
+                const statusBadge = getStatusBadge(equipe.status || 'ATIVA');
+                
+                return `
+                    <tr>
+                        <td class="font-semibold text-gray-800">${equipe.nome_equipe}</td>
+                        <td>${equipe.cidade}</td>
+                        <td>${equipe.tecnico || '-'}</td>
+                        <td>${equipe.telefone || '-'}</td>
+                        <td>${equipe.email || '-'}</td>
+                        <td>
+                            <span class="badge badge-success">
+                                ${equipe.total_atletas || 0} atletas
+                            </span>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button onclick="toggleStatusEquipe('${equipe.id}', '${equipe.status || 'ATIVA'}')" class="btn-${equipe.status === 'ATIVA' ? 'danger' : 'success'} mr-2" title="${equipe.status === 'ATIVA' ? 'Desativar' : 'Ativar'} Equipe">
+                                <i class="fas fa-${equipe.status === 'ATIVA' ? 'pause' : 'play'}"></i>
+                            </button>
+                            <button onclick="editEquipe('${equipe.id}')" class="btn-warning mr-2" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteEquipe('${equipe.id}', '${equipe.nome_equipe.replace(/'/g, "\\'")}')" class="btn-danger" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Get status badge
+        function getStatusBadge(status) {
+            const badges = {
+                'ATIVA': '<span class="badge badge-success">Ativa</span>',
+                'INATIVA': '<span class="badge badge-danger">Inativa</span>',
+                'SUSPENSA': '<span class="badge badge-warning">Suspensa</span>',
+                'PAGO': '<span class="badge badge-success">Pago</span>',
+                'PENDENTE': '<span class="badge badge-warning">Pendente</span>'
+            };
+            return badges[status] || badges['ATIVA'];
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            const totalEquipes = equipes.length;
+            const equipesAtivas = equipes.filter(e => e.status === 'ATIVA' || !e.status).length;
+            const totalAtletas = equipes.reduce((sum, e) => sum + (e.total_atletas || 0), 0);
+            const mediaAtletas = totalEquipes > 0 ? Math.round(totalAtletas / totalEquipes) : 0;
+            
+            document.getElementById('totalEquipes').textContent = totalEquipes;
+            document.getElementById('equipesAtivas').textContent = equipesAtivas;
+            document.getElementById('totalAtletas').textContent = totalAtletas;
+            document.getElementById('mediaAtletas').textContent = mediaAtletas;
+        }
+
+        // Abrir modal
+        function openModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Nova Equipe';
+            document.getElementById('equipeForm').reset();
+            
+            // Mostrar campos de usuário ao criar nova equipe
+            document.getElementById('usuarioSection').style.display = 'block';
+            
+            document.getElementById('equipeModal').classList.add('active');
+        }
+
+        // Fechar modal
+        function closeModal() {
+            document.getElementById('equipeModal').classList.remove('active');
+            document.getElementById('permissoesSection').style.display = 'none';
+            editingId = null;
+        }
+
+        // Editar equipe
+        async function editEquipe(id) {
+            const equipe = equipes.find(e => e.id === id);
+            if (!equipe) return;
+            
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Equipe';
+            document.getElementById('nomeEquipe').value = equipe.nome_equipe;
+            document.getElementById('cidade').value = equipe.cidade;
+            document.getElementById('tecnico').value = equipe.tecnico || '';
+            document.getElementById('telefone').value = equipe.telefone || '';
+            document.getElementById('email').value = equipe.email || '';
+            
+            // Ocultar campos de usuário ao editar
+            document.getElementById('usuarioSection').style.display = 'none';
+            
+            // Buscar dados do usuário da equipe
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/api/usuarios/equipe/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    const usuario = data.data;
+                    
+                    // Preencher campos editáveis do usuário
+                    document.getElementById('loginUsuarioEdit').value = usuario.login;
+                    document.getElementById('nomeUsuarioEdit').value = usuario.nome;
+                    document.getElementById('senhaUsuarioEdit').value = ''; // Sempre vazio para nova senha
+                    document.getElementById('novoTipoUsuario').value = usuario.tipo;
+                    
+                    // Mostrar seção de permissões
+                    document.getElementById('permissoesSection').style.display = 'block';
+                } else {
+                    // Se não encontrar usuário, ocultar seção
+                    document.getElementById('permissoesSection').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro ao buscar usuário da equipe:', error);
+                document.getElementById('permissoesSection').style.display = 'none';
+            }
+            
+            document.getElementById('equipeModal').classList.add('active');
+        }
+
+        // Submeter formulário
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            // Validar senha
+            const senha = document.getElementById('senhaUsuario').value;
+            if (!editingId && senha.length < 6) {
+                showAlert('A senha deve ter no mínimo 6 caracteres.', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
+            
+            const equipeData = {
+                nome_equipe: document.getElementById('nomeEquipe').value,
+                cidade: document.getElementById('cidade').value,
+                tecnico: document.getElementById('tecnico').value,
+                telefone: document.getElementById('telefone').value,
+                email: document.getElementById('email').value,
+                status: 'ATIVA'
+            };
+            
+            // Dados do usuário (apenas na criação)
+            const usuarioData = !editingId ? {
+                login: document.getElementById('loginUsuario').value,
+                nome: document.getElementById('nomeUsuario').value,
+                senha: senha,
+                tipo: document.getElementById('tipoUsuario').value,
+                chefe_equipe: true
+            } : null;
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                
+                if (editingId) {
+                    // Atualizar equipe existente
+                    const response = await fetch(`${API_BASE_URL}/api/equipes/${editingId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(equipeData)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Verificar se há alteração de dados do usuário
+                        const novoTipoUsuario = document.getElementById('novoTipoUsuario').value;
+                        const loginUsuario = document.getElementById('loginUsuarioEdit').value;
+                        const nomeUsuario = document.getElementById('nomeUsuarioEdit').value;
+                        const senhaUsuario = document.getElementById('senhaUsuarioEdit').value;
+                        
+                        if (novoTipoUsuario && loginUsuario && nomeUsuario) {
+                            try {
+                                // Buscar ID do usuário da equipe
+                                const usuarioResponse = await fetch(`${API_BASE_URL}/api/usuarios/equipe/${editingId}`, {
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`
+                                    }
+                                });
+                                
+                                const usuarioData = await usuarioResponse.json();
+                                
+                                if (usuarioData.success && usuarioData.data) {
+                                    // Preparar dados para atualização do usuário
+                                    const updateUsuarioData = {
+                                        nome: nomeUsuario,
+                                        tipo: novoTipoUsuario,
+                                        login: loginUsuario
+                                    };
+                                    
+                                    // Incluir senha apenas se foi fornecida
+                                    if (senhaUsuario && senhaUsuario.length >= 6) {
+                                        updateUsuarioData.senha = senhaUsuario;
+                                    }
+                                    
+                                    // Atualizar dados do usuário
+                                    const updateUsuarioResponse = await fetch(`${API_BASE_URL}/api/usuarios/${usuarioData.data.id}`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify(updateUsuarioData)
+                                    });
+                                    
+                                    const updateUsuarioResult = await updateUsuarioResponse.json();
+                                    
+                                    if (!updateUsuarioResult.success) {
+                                        console.warn('Erro ao atualizar dados do usuário:', updateUsuarioResult.error);
+                                        showAlert('Equipe atualizada, mas houve erro ao atualizar dados do usuário.', 'error');
+                                    } else {
+                                        showAlert('Equipe e dados do usuário atualizados com sucesso!', 'success');
+                                    }
+                                }
+                            } catch (error) {
+                                console.warn('Erro ao atualizar dados do usuário:', error);
+                                showAlert('Equipe atualizada, mas houve erro ao atualizar dados do usuário.', 'error');
+                            }
+                        } else {
+                            showAlert('Equipe atualizada com sucesso!', 'success');
+                        }
+                        closeModal();
+                        loadEquipes();
+                    } else {
+                        throw new Error(data.error || 'Erro ao atualizar equipe');
+                    }
+                } else {
+                    // Criar nova equipe E usuário
+                    // Passo 1: Criar equipe
+                    const equipeResponse = await fetch(`${API_BASE_URL}/api/equipes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(equipeData)
+                    });
+                    
+                    const equipeResult = await equipeResponse.json();
+                    
+                    if (!equipeResult.success) {
+                        throw new Error(equipeResult.error || 'Erro ao criar equipe');
+                    }
+                    
+                    const equipeId = equipeResult.data.id;
+                    
+                    // Passo 2: Criar usuário vinculado à equipe
+                    usuarioData.id_equipe = equipeId;
+                    
+                    const userResponse = await fetch(`${API_BASE_URL}/api/usuarios`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(usuarioData)
+                    });
+                    
+                    const userResult = await userResponse.json();
+                    
+                    if (!userResult.success) {
+                        // Se falhar ao criar usuário, avisar mas não reverter equipe
+                        console.error('Erro ao criar usuário:', userResult.error);
+                        showAlert('Equipe criada, mas erro ao criar usuário: ' + userResult.error, 'error');
+                    } else {
+                        // Passo 3: Atualizar equipe com ID do chefe
+                        await fetch(`${API_BASE_URL}/api/equipes/${equipeId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ id_chefe: userResult.data.id })
+                        });
+                        
+                        showAlert('Equipe e usuário criados com sucesso!', 'success');
+                    }
+                    
+                    closeModal();
+                    loadEquipes();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                showAlert('Erro ao salvar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Salvar';
+            }
+        }
+
+        // Excluir equipe
+        async function deleteEquipe(id, nome) {
+            console.log('🔍 deleteEquipe chamada com:', { id, nome });
+            
+            // Verificar se os parâmetros estão corretos
+            if (!id || !nome) {
+                console.error('❌ Parâmetros inválidos:', { id, nome });
+                showAlert('Erro: Parâmetros inválidos para exclusão', 'error');
+                return;
+            }
+            
+            console.log('⚠️ Exibindo primeira confirmação...');
+            if (!confirm(`⚠️ ATENÇÃO: Tem certeza que deseja excluir a equipe "${nome}"?\n\nEsta ação irá:\n• Excluir a equipe permanentemente\n• Excluir TODOS os atletas vinculados\n• Excluir TODOS os usuários da equipe\n\nEsta ação NÃO pode ser desfeita!`)) {
+                console.log('❌ Primeira confirmação cancelada');
+                return;
+            }
+            
+            console.log('✅ Primeira confirmação aceita');
+            
+            // Confirmação adicional
+            console.log('🚨 Exibindo segunda confirmação...');
+            if (!confirm(`🚨 CONFIRMAÇÃO FINAL: Você tem certeza absoluta que deseja excluir a equipe "${nome}" e todos os seus dados?`)) {
+                console.log('❌ Segunda confirmação cancelada');
+                return;
+            }
+            
+            console.log('✅ Segunda confirmação aceita');
+            console.log('🔄 Iniciando exclusão...');
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                console.log('🔑 Token obtido:', token ? 'SIM' : 'NÃO');
+                
+                if (!token) {
+                    throw new Error('Token de autenticação não encontrado');
+                }
+                
+                console.log('📡 Enviando requisição DELETE para:', `${API_BASE_URL}/api/equipes/${id}`);
+                
+                const response = await fetch(`${API_BASE_URL}/api/equipes/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log('📊 Status da resposta:', response.status);
+                
+                const data = await response.json();
+                console.log('📊 Dados da resposta:', data);
+                
+                if (data.success) {
+                    let mensagem = `Equipe "${nome}" excluída com sucesso!`;
+                    
+                    if (data.data) {
+                        const atletas = data.data.atletasExcluidos || 0;
+                        const usuarios = data.data.usuariosExcluidos || 0;
+                        
+                        if (atletas > 0 || usuarios > 0) {
+                            mensagem += `\n\nDados excluídos:\n• ${atletas} atletas\n• ${usuarios} usuários`;
+                        }
+                    }
+                    
+                    console.log('✅ Exclusão realizada com sucesso');
+                    showAlert(mensagem, 'success');
+                    loadEquipes();
+                } else {
+                    throw new Error(data.error || 'Erro ao excluir equipe');
+                }
+            } catch (error) {
+                console.error('❌ Erro ao excluir equipe:', error);
+                showAlert('Erro ao excluir equipe. Tente novamente.', 'error');
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('equipeModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Toggle status da equipe
+        async function toggleStatusEquipe(id, statusAtual) {
+            try {
+                const novoStatus = statusAtual === 'ATIVA' ? 'INATIVA' : 'ATIVA';
+                const acao = statusAtual === 'ATIVA' ? 'desativar' : 'ativar';
+                
+                if (!confirm(`Tem certeza que deseja ${acao} esta equipe?`)) {
+                    return;
+                }
+                
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/api/equipes/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`Equipe ${acao}da com sucesso!`, 'success');
+                    loadEquipes(); // Recarregar a lista
+                } else {
+                    throw new Error(data.error || 'Erro ao alterar status da equipe');
+                }
+            } catch (error) {
+                console.error('Erro ao alterar status da equipe:', error);
+                showAlert('Erro ao alterar status da equipe. Tente novamente.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+
