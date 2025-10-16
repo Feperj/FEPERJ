@@ -1,8 +1,0 @@
-/* CSS simplificado para FloatingLiftingWindow */
-/* Como o componente não renderiza nada, apenas abre popup, este arquivo pode estar vazio */
-/* Os estilos estão embutidos diretamente no HTML do popup */
-
-/* Estilos mínimos para o componente (se necessário no futuro) */
-.popup-launcher {
-  display: none; /* Componente não renderiza nada */
-}

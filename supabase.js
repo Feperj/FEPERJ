@@ -89,7 +89,7 @@ async function criarAdminInicial() {
     }
 }
 
-// Função para criar dados de exemplo
+// Função para criar dados de exemplo (equipes de teste removidas)
 async function criarDadosExemplo() {
     try {
         // Verificar se já existem dados
@@ -106,45 +106,12 @@ async function criarDadosExemplo() {
             return;
         }
         
-        // Inserir equipes de exemplo
-        const equipesExemplo = [
-            {
-                nome_equipe: 'Power Rio',
-                cidade: 'Rio de Janeiro',
-                tecnico: 'João Silva',
-                telefone: '(21) 99999-1111',
-                email: 'powerrio@email.com',
-                status: 'ATIVA'
-            },
-            {
-                nome_equipe: 'Força Carioca',
-                cidade: 'Rio de Janeiro',
-                tecnico: 'Maria Santos',
-                telefone: '(21) 99999-2222',
-                email: 'forcacarioca@email.com',
-                status: 'ATIVA'
-            },
-            {
-                nome_equipe: 'Levantadores RJ',
-                cidade: 'Niterói',
-                tecnico: 'Pedro Costa',
-                telefone: '(21) 99999-3333',
-                email: 'levantadores@email.com',
-                status: 'ATIVA'
-            }
-        ];
+        // Equipes de teste removidas - sistema funciona sem equipes fictícias
+        console.log('ℹ️ Sistema configurado para funcionar sem equipes de teste');
+        console.log('ℹ️ Atletas podem ser cadastrados sem equipe definida');
         
-        const { error: insertEquipesError } = await supabase
-            .from('equipes')
-            .insert(equipesExemplo);
-        
-        if (insertEquipesError) {
-            throw insertEquipesError;
-        }
-        
-        console.log('✅ Dados de exemplo criados com sucesso');
     } catch (error) {
-        console.log('❌ Erro ao criar dados de exemplo:', error);
+        console.log('❌ Erro ao verificar dados de exemplo:', error);
     }
 }
 

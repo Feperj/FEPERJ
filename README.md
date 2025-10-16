@@ -1,202 +1,179 @@
-# Sistema FEPERJ - Federação de Powerlifting do Estado do Rio de Janeiro
+# 🏋️‍♂️ FEPERJ - Sistema de Gestão de Powerlifting
 
-Sistema web completo para gestão de atletas, equipes, competições e inscrições da FEPERJ.
+Sistema completo de gestão para a Federação de Powerlifting do Estado do Rio de Janeiro (FEPERJ), desenvolvido como uma aplicação web tradicional com páginas HTML estáticas e backend Node.js.
 
-## 🚀 Tecnologias
+## 🚀 **Arquitetura do Sistema**
 
-- **Backend**: Node.js + Express
-- **Banco de Dados**: Supabase
-- **Frontend**: HTML + JavaScript (Vanilla)
-- **Autenticação**: JWT (JSON Web Tokens)
-- **Estilização**: Tailwind CSS
-- **Gráficos**: Chart.js
-- **Deploy**: Vercel
+### **Frontend**
+- **HTML5** - Páginas estáticas
+- **JavaScript (Vanilla)** - Lógica do frontend
+- **Tailwind CSS** - Framework CSS utilitário
+- **Chart.js** - Gráficos e visualizações
+- **Font Awesome** - Ícones
 
-## 📋 Funcionalidades
+### **Backend (API)**
+- **Node.js** com Express.js
+- **Supabase** como banco de dados
+- **JWT** para autenticação
+- **Multer** para upload de arquivos
+- **PDF-lib** para geração de carteirinhas
 
-### 🔐 Autenticação
-- Login seguro com JWT
-- Sessão persistente (24 horas)
-- Logout automático
+## 📁 **Estrutura do Projeto**
 
-### 📊 Dashboard
-- Estatísticas em tempo real
-- Gráficos interativos
-- Visão geral do sistema
-
-### 👥 Gestão de Atletas
-- Cadastro completo de atletas
-- Busca e filtros
-- Edição e exclusão
-- Geração automática de matrícula
-
-### 🛡️ Gestão de Equipes
-- Cadastro de equipes
-- Contagem de atletas por equipe
-- Informações de contato
-
-### 🏆 Gestão de Competições
-- Cadastro de competições
-- Controle de inscrições
-- Status de competições
-
-### 📝 Gestão de Inscrições
-- Inscrição de atletas em competições
-- Controle de categorias
-- Relatórios de inscrições
-
-## 🔧 Instalação Local
-
-### Pré-requisitos
-- Node.js 16+ 
-- npm ou yarn
-
-### Passos
-
-1. **Clone o repositório**
-```bash
-git clone https://github.com/RJSeERMJ/Sistema-FEPERJ-vers-o-Web.git
-cd Sistema-FEPERJ-vers-o-Web
+```
+feperj-web/
+├── 📁 public/                 # Páginas HTML estáticas
+│   ├── login.html            # Página de login
+│   ├── dashboard.html        # Dashboard principal
+│   ├── atletas.html          # Gestão de atletas
+│   ├── atleta-detalhes.html  # Detalhes do atleta
+│   ├── equipes.html          # Gestão de equipes
+│   ├── competicoes.html      # Gestão de competições
+│   ├── resultados.html       # Visualização de resultados
+│   ├── financeiro.html       # Módulo financeiro
+│   └── favicon.svg           # Ícone do sistema
+├── 📁 routes/               # APIs modulares
+│   ├── atletas.js          # API de atletas
+│   ├── equipes.js          # API de equipes
+│   ├── documentos.js       # API de documentos
+│   ├── carteirinhas.js     # API de carteirinhas
+│   └── exportacao.js       # API de exportação
+├── 📁 middleware/           # Middlewares de autenticação
+├── 📁 services/            # Serviços auxiliares
+├── 📁 config/              # Configurações
+├── server.js               # Servidor principal
+└── supabaseService.js      # Serviços do Supabase
 ```
 
-2. **Instale as dependências**
+## 🛠️ **Instalação e Configuração**
+
+### **Pré-requisitos**
+- Node.js 16+
+- NPM ou Yarn
+- Conta no Supabase
+
+### **1. Instalação das Dependências**
 ```bash
 npm install
 ```
 
-3. **Configure as variáveis de ambiente**
+### **2. Configuração do Ambiente**
 Crie um arquivo `.env` na raiz do projeto:
 ```env
-MONGODB_URI=mongodb+srv://jamarestudo:49912170Lacrimosa1!@familiajamar.wu9knb3.mongodb.net/?retryWrites=true&w=majority&appName=Familiajamar
-DB_NAME=project0
-JWT_SECRET=7qt1DUw9b4p4zKCC
-PORT=3000
+SUPABASE_URL=sua_url_do_supabase
+SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+SUPABASE_SERVICE_KEY=sua_chave_de_servico_do_supabase
+JWT_SECRET=seu_jwt_secret_aqui
 ```
 
-4. **Execute o servidor**
+### **3. Configuração do Supabase**
+Execute o script de configuração:
+```bash
+node supabase.js
+```
+
+## 🚀 **Executando o Sistema**
+
+### **Desenvolvimento**
+```bash
+npm run dev
+```
+
+### **Produção**
 ```bash
 npm start
 ```
 
-5. **Acesse o sistema**
-Abra o navegador e acesse: `http://localhost:3000`
+## 🌐 **Acessos**
 
-## 📱 Acesso Online
+- **Sistema Web**: http://localhost:3000
+- **API**: http://localhost:3000/api
+- **Login Admin**: `15119236790` / `49912170`
 
-- **URL**: https://feperj-sistema.vercel.app
-- **Login**: 15119236790
-- **Senha**: 49912170
+## 👥 **Tipos de Usuário**
 
-## 🗂️ Estrutura do Projeto
+### **Administrador (`admin`)**
+- Acesso completo a todas as funcionalidades
+- Gestão de equipes, atletas e competições
+- Relatórios e exportações
+- Configurações do sistema
 
-```
-feperj-web/
-├── server.js              # Servidor Express
-├── package.json           # Dependências Node.js
-├── vercel.json           # Configuração Vercel
-├── public/               # Arquivos frontend
-│   ├── index.html        # Página inicial
-│   ├── login.html        # Página de login
-│   ├── dashboard.html    # Dashboard
-│   ├── atletas.html      # Gestão de atletas
-│   ├── equipes.html      # Gestão de equipes
-│   ├── competicoes.html  # Gestão de competições
-│   ├── inscricoes.html   # Gestão de inscrições
-│   ├── favicon.svg       # Ícone do sistema
-│   └── js/               # Scripts JavaScript
-└── README.md             # Documentação
-```
+### **Usuário (`usuario`)**
+- Acesso limitado aos atletas da própria equipe
+- Visualização de competições e resultados
+- Upload de documentos dos atletas
 
-## 🔌 API Endpoints
+## 📋 **Funcionalidades Principais**
 
-### Autenticação
-- `POST /api/login` - Login do usuário
-- `GET /api/verificar-token` - Verificar token JWT
+### **🏃‍♂️ Gestão de Atletas**
+- Cadastro completo de atletas
+- Upload de documentos (RG, CPF, foto 3x4, etc.)
+- Geração automática de carteirinhas
+- Exportação para Excel
+- Controle de status (ATIVO/INATIVO)
 
-### Atletas
-- `GET /api/atletas` - Listar atletas
-- `POST /api/atletas` - Criar atleta
-- `PUT /api/atletas/:id` - Atualizar atleta
-- `DELETE /api/atletas/:id` - Excluir atleta
+### **👥 Gestão de Equipes**
+- Criação e edição de equipes
+- Vinculação de chefes de equipe
+- Controle de anuidade
+- Soft delete com preservação de dados
 
-### Equipes
-- `GET /api/equipes` - Listar equipes
-- `POST /api/equipes` - Criar equipe
-- `PUT /api/equipes/:id` - Atualizar equipe
-- `DELETE /api/equipes/:id` - Excluir equipe
+### **🏆 Competições**
+- Cadastro de competições
+- Inscrições de atletas
+- Controle de resultados
+- Relatórios de performance
 
-### Competições
-- `GET /api/competicoes` - Listar competições
-- `POST /api/competicoes` - Criar competição
-- `PUT /api/competicoes/:id` - Atualizar competição
-- `DELETE /api/competicoes/:id` - Excluir competição
+### **📊 Dashboard**
+- Estatísticas em tempo real
+- Gráficos de performance
+- Resumo de atividades
+- Indicadores de crescimento
 
-### Inscrições
-- `GET /api/inscricoes` - Listar inscrições
-- `POST /api/inscricoes` - Criar inscrição
-- `PUT /api/inscricoes/:id` - Atualizar inscrição
-- `DELETE /api/inscricoes/:id` - Excluir inscrição
+### **📄 Documentos**
+- Upload seguro para Supabase Storage
+- Geração de carteirinhas em PDF
+- Visualização e download de documentos
+- Controle de permissões por equipe
 
-### Dashboard
-- `GET /api/dashboard` - Dados do dashboard
+## 🔐 **Segurança**
 
-### Health Check
-- `GET /api/health` - Status da API
+- **Autenticação JWT** com expiração
+- **Controle de acesso baseado em roles**
+- **Validação de permissões por equipe**
+- **Upload seguro de arquivos**
+- **Sanitização de dados**
 
-## 🚀 Deploy
+## 📈 **Tecnologias Utilizadas**
 
-### Deploy Automático (Recomendado)
-Execute o script de deploy:
-```bash
-deploy_nodejs.bat
-```
+### **Frontend**
+- HTML5
+- JavaScript (Vanilla)
+- Tailwind CSS
+- Chart.js
+- Font Awesome
 
-### Deploy Manual
-1. Faça commit das alterações
-2. Push para o GitHub
-3. O Vercel fará o deploy automaticamente
+### **Backend**
+- Node.js
+- Express.js
+- Supabase
+- JWT
+- Multer
+- PDF-lib
+- XLSX
 
-## 🔒 Segurança
+## 🚀 **Deploy**
 
-- Autenticação JWT
-- Senhas criptografadas com bcrypt
-- Validação de dados
-- CORS configurado
-- Headers de segurança
+O sistema está configurado para deploy com suporte a:
+- Build automático
+- Variáveis de ambiente
+- Cache otimizado
+- Servidor estático
 
-## 📊 Banco de Dados
+## 📞 **Suporte**
 
-### Coleções MongoDB
-- `usuarios` - Usuários do sistema
-- `atletas` - Cadastro de atletas
-- `equipes` - Cadastro de equipes
-- `competicoes` - Cadastro de competições
-- `inscricoes` - Inscrições em competições
-
-## 🛠️ Desenvolvimento
-
-### Scripts Disponíveis
-- `npm start` - Iniciar servidor de produção
-- `npm run dev` - Iniciar servidor de desenvolvimento (nodemon)
-
-### Logs
-O sistema registra logs detalhados no console:
-- Conexão com MongoDB
-- Operações de CRUD
-- Erros e exceções
-- Autenticação
-
-## 📞 Suporte
-
-Para suporte técnico ou dúvidas:
-- Email: admin@feperj.com
-- Sistema: https://feperj-sistema.vercel.app
-
-## 📄 Licença
-
-Este projeto é desenvolvido para a FEPERJ - Federação de Powerlifting do Estado do Rio de Janeiro.
+Para suporte técnico ou dúvidas sobre o sistema, entre em contato com a equipe de desenvolvimento da FEPERJ.
 
 ---
 
-**FEPERJ** - Federação de Powerlifting do Estado do Rio de Janeiro  
-**Sistema de Gestão** - Versão Web
+**Desenvolvido com ❤️ para a FEPERJ - Federação de Powerlifting do Estado do Rio de Janeiro**
