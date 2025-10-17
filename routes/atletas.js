@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { atletaService, equipeService, categoriaService, logService } = require('../supabaseService');
-const { verificarAdmin } = require('../middleware/adminAuth');
 
 // Função para gerar matrícula baseada no CPF e ano atual
 const gerarMatricula = (cpf) => {
@@ -302,8 +301,8 @@ router.put('/:id', verificarPermissaoAtleta, async (req, res) => {
   }
 });
 
-// DELETE /api/atletas/:id - Excluir atleta (apenas admin)
-router.delete('/:id', verificarPermissaoAtleta, verificarAdmin, async (req, res) => {
+// DELETE /api/atletas/:id - Excluir atleta
+router.delete('/:id', verificarPermissaoAtleta, async (req, res) => {
   try {
     const { id } = req.params;
     const user = req.user;

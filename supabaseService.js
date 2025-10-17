@@ -82,43 +82,32 @@ const usuarioService = {
   },
 
   async create(usuario) {
-    // Se o usuário não for admin, vincular à equipe existente
+    // Se o usuário não for admin, criar equipe automaticamente
     if (usuario.tipo === 'usuario') {
-      // Se já existe idEquipe, usar essa equipe (não criar nova)
-      let equipeId = usuario.idEquipe;
-      
-      if (!equipeId && usuario.nomeEquipe) {
-        // Buscar equipe existente pelo nome (caso legado)
-        const { data: equipeExistente, error: buscaError } = await supabase
-          .from('equipes')
-          .select('id')
-          .eq('nome_equipe', usuario.nomeEquipe)
-          .single();
-          
-        if (buscaError || !equipeExistente) {
-          throw new Error(`Equipe "${usuario.nomeEquipe}" não encontrada. Crie a equipe primeiro.`);
-        }
-        
-        equipeId = equipeExistente.id;
-      }
-      
-      if (!equipeId) {
-        throw new Error('ID da equipe é obrigatório para usuários do tipo "usuario"');
-      }
+      // Criar equipe primeiro
+      const { data: novaEquipe, error: equipeError } = await supabase
+        .from('equipes')
+        .insert({
+          nome_equipe: usuario.nomeEquipe || usuario.nome,
+          cidade: usuario.estado || 'A definir',
+          tecnico: usuario.nome,
+          telefone: '',
+          email: '',
+          status: 'ATIVA'
+        })
+        .select()
+        .single();
 
-      // Criar o usuário com referência à equipe existente (apenas campos válidos da tabela usuarios)
-      const dadosUsuario = {
-        login: usuario.login,
-        senha: usuario.senha,
-        nome: usuario.nome,
-        tipo: usuario.tipo,
-        chefe_equipe: true,
-        id_equipe: equipeId
-      };
-      
+      if (equipeError) throw equipeError;
+
+      // Criar o usuário com referência à equipe
       const { data: novoUsuario, error: usuarioError } = await supabase
         .from('usuarios')
-        .insert(dadosUsuario)
+        .insert({
+          ...usuario,
+          chefe_equipe: true,
+          id_equipe: novaEquipe.id
+        })
         .select()
         .single();
 
@@ -128,18 +117,15 @@ const usuarioService = {
       await supabase
         .from('equipes')
         .update({ id_chefe: novoUsuario.id })
-        .eq('id', equipeId);
+        .eq('id', novaEquipe.id);
 
       return novoUsuario.id;
     } else {
-      // Para administradores, criar normalmente sem equipe (apenas campos válidos da tabela usuarios)
+      // Para administradores, criar normalmente sem equipe
       const { data: novoUsuario, error } = await supabase
         .from('usuarios')
         .insert({
-          login: usuario.login,
-          senha: usuario.senha,
-          nome: usuario.nome,
-          tipo: usuario.tipo,
+          ...usuario,
           chefe_equipe: false
         })
         .select()
@@ -395,16 +381,7 @@ const atletaService = {
       idEquipe: atleta.id_equipe,
       dataNascimento: convertTimestamp(atleta.data_nascimento),
       dataFiliacao: convertTimestamp(atleta.data_filiacao),
-      dataCriacao: convertTimestamp(atleta.data_criacao),
-      // Mapear as relações corretamente
-      categoria: atleta.categorias ? {
-        ...atleta.categorias,
-        nomeCategoria: atleta.categorias.nome_categoria
-      } : null,
-      equipe: atleta.equipes ? {
-        ...atleta.equipes,
-        nomeEquipe: atleta.equipes.nome_equipe
-      } : null
+      dataCriacao: convertTimestamp(atleta.data_criacao)
     }));
   },
 
@@ -430,14 +407,8 @@ const atletaService = {
       dataFiliacao: convertTimestamp(data.data_filiacao),
       dataCriacao: convertTimestamp(data.data_criacao),
       // Garantir que as relações sejam mapeadas corretamente
-      categoria: data.categorias ? {
-        ...data.categorias,
-        nomeCategoria: data.categorias.nome_categoria
-      } : null,
-      equipe: data.equipes ? {
-        ...data.equipes,
-        nomeEquipe: data.equipes.nome_equipe
-      } : null
+      categoria: data.categorias || null,
+      equipe: data.equipes || null
     };
   },
 
@@ -573,29 +544,6 @@ const atletaService = {
       .eq('id', id);
 
     if (error) throw error;
-  },
-
-  // Método para atualizar atletas em massa (quando equipe é excluída)
-  async updateAtletasDaEquipe(equipeId, updates) {
-    console.log(`🔄 Atualizando atletas da equipe ${equipeId} com:`, updates);
-    
-    const { data, error } = await supabase
-      .from('atletas')
-      .update({
-        status: updates.status || 'INATIVO',
-        id_equipe: updates.idEquipe || null,
-        data_atualizacao: new Date().toISOString()
-      })
-      .eq('id_equipe', equipeId)
-      .select();
-
-    if (error) {
-      console.error('❌ Erro ao atualizar atletas da equipe:', error);
-      throw error;
-    }
-
-    console.log(`✅ ${data?.length || 0} atletas atualizados`);
-    return data;
   }
 };
 

@@ -36,19 +36,10 @@ const {
 
 // Importar rotas das APIs
 const atletasRoutes = require('./routes/atletas');
-const equipesRoutes = require('./routes/equipes');
 const documentosRoutes = require('./routes/documentos');
 const documentosStorageRoutes = require('./routes/documentos-storage');
 const carteirinhasRoutes = require('./routes/carteirinhas');
 const exportacaoRoutes = require('./routes/exportacao');
-
-// Importar middleware de controle de acesso
-const { 
-  verificarAcessoAPIMiddleware, 
-  obterInformacoesAcesso,
-  verificarAdmin,
-  verificarUsuario 
-} = require('./middleware/roleAuth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -165,8 +156,7 @@ app.post('/api/login', async (req, res) => {
                 id: usuario.id, 
                 login: usuario.login, 
                 tipo: usuario.tipo,
-                nome: usuario.nome,
-                idEquipe: usuario.id_equipe || null
+                nome: usuario.nome
             },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
@@ -620,7 +610,75 @@ app.post('/api/atletas/import/excel', verificarToken, upload.single('arquivo'), 
     }
 });
 
-// Rota de equipes removida - usando routes/equipes.js
+// Rota para listar equipes
+app.get('/api/equipes', verificarToken, async (req, res) => {
+    try {
+        const equipes = await equipeService.getAll();
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'LIST_EQUIPES',
+            detalhes: 'Listagem de equipes',
+            tipo_usuario: req.user.tipo
+        });
+        
+        res.json({
+            success: true,
+            data: equipes
+        });
+        
+    } catch (error) {
+        console.error('Erro ao buscar equipes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
+
+// Rota para criar nova equipe
+app.post('/api/equipes', verificarToken, async (req, res) => {
+    try {
+        const dadosEquipe = req.body;
+        
+        // Verificar se nome da equipe já existe
+        const equipeExistente = await equipeService.getByNome(dadosEquipe.nome_equipe);
+        
+        if (equipeExistente) {
+            return res.status(400).json({
+                success: false,
+                message: `Nome da equipe "${dadosEquipe.nome_equipe}" já está cadastrado no sistema.`
+            });
+        }
+        
+        // Criar equipe
+        const novaEquipe = await equipeService.create(dadosEquipe);
+        
+        // Log da atividade
+        await logService.create({
+            usuario: req.user.nome,
+            acao: 'CREATE_EQUIPE',
+            detalhes: `Equipe criada: ${dadosEquipe.nome_equipe}`,
+            tipo_usuario: req.user.tipo,
+            resource_type: 'equipe',
+            resource_id: novaEquipe
+        });
+        
+        res.json({
+            success: true,
+            message: 'Equipe criada com sucesso',
+            data: { id: novaEquipe }
+        });
+        
+    } catch (error) {
+        console.error('Erro ao criar equipe:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno do servidor'
+        });
+    }
+});
 
 // Rota para listar categorias
 app.get('/api/categorias', verificarToken, async (req, res) => {
@@ -909,41 +967,6 @@ app.get('/api/usuarios', verificarToken, async (req, res) => {
     }
 });
 
-// Rota para obter usuário de uma equipe específica
-app.get('/api/usuarios/equipe/:equipeId', verificarToken, async (req, res) => {
-    try {
-        const { equipeId } = req.params;
-        
-        console.log(`🔍 Buscando usuário da equipe ID: ${equipeId}`);
-        
-        // Buscar usuário chefe da equipe
-        const usuarios = await usuarioService.getAll();
-        const usuarioChefe = usuarios.find(usuario => usuario.id_equipe === equipeId);
-        
-        if (usuarioChefe) {
-            console.log(`✅ Usuário chefe encontrado: ${usuarioChefe.nome} (${usuarioChefe.login})`);
-            res.json({
-                success: true,
-                data: usuarioChefe
-            });
-        } else {
-            console.log(`⚠️ Nenhum usuário chefe encontrado para a equipe ${equipeId}`);
-            res.json({
-                success: false,
-                message: 'Nenhum usuário chefe encontrado para esta equipe'
-            });
-        }
-        
-    } catch (error) {
-        console.error('❌ Erro ao buscar usuário da equipe:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Erro interno do servidor',
-            error: error.message
-        });
-    }
-});
-
 // Rota para criar usuário
 app.post('/api/usuarios', verificarToken, async (req, res) => {
     try {
@@ -970,22 +993,34 @@ app.post('/api/usuarios', verificarToken, async (req, res) => {
         // Hash da senha
         const hashedPassword = await bcrypt.hash(dadosUsuario.senha, 10);
         
-        // Se o usuário não for admin, vincular à equipe existente
+        // Se o usuário não for admin, criar equipe automaticamente
         if (dadosUsuario.tipo === 'usuario') {
-            // Criar o usuário vinculado à equipe existente
-            const novoUsuario = await usuarioService.create({
-                login: dadosUsuario.login,
-                senha: hashedPassword,
-                nome: dadosUsuario.nome,
-                tipo: dadosUsuario.tipo,
-                idEquipe: dadosUsuario.id_equipe || dadosUsuario.idEquipe
+            // Criar equipe primeiro
+            const novaEquipe = await equipeService.create({
+                nome_equipe: dadosUsuario.nome_equipe || dadosUsuario.nome,
+                cidade: dadosUsuario.estado || 'A definir',
+                tecnico: dadosUsuario.nome,
+                telefone: '',
+                email: '',
+                status: 'ATIVA'
             });
+            
+            // Criar o usuário com referência à equipe
+            const novoUsuario = await usuarioService.create({
+                ...dadosUsuario,
+                senha: hashedPassword,
+                chefe_equipe: true,
+                id_equipe: novaEquipe
+            });
+            
+            // Atualizar a equipe com o ID do chefe
+            await equipeService.update(novaEquipe, { id_chefe: novoUsuario });
             
             // Log da atividade
             await logService.create({
                 usuario: req.user.nome,
                 acao: 'CREATE_USUARIO',
-                detalhes: `Usuário criado e vinculado à equipe: ${dadosUsuario.nome}`,
+                detalhes: `Usuário criado: ${dadosUsuario.nome}`,
                 tipo_usuario: req.user.tipo,
                 resource_type: 'usuario',
                 resource_id: novoUsuario
@@ -993,16 +1028,15 @@ app.post('/api/usuarios', verificarToken, async (req, res) => {
             
             res.json({
                 success: true,
-                message: 'Usuário criado e vinculado à equipe com sucesso',
+                message: 'Usuário e equipe criados com sucesso',
                 data: { id: novoUsuario }
             });
         } else {
             // Para administradores, criar normalmente sem equipe
             const novoUsuario = await usuarioService.create({
-                login: dadosUsuario.login,
+                ...dadosUsuario,
                 senha: hashedPassword,
-                nome: dadosUsuario.nome,
-                tipo: dadosUsuario.tipo
+                chefe_equipe: false
             });
             
             // Log da atividade
@@ -1036,13 +1070,11 @@ app.post('/api/usuarios', verificarToken, async (req, res) => {
 // =====================================================
 
 // Usar as rotas das APIs
-// Integrar rotas das APIs com controle de acesso baseado em roles
-app.use('/api/atletas', verificarToken, verificarAcessoAPIMiddleware('atletas'), atletasRoutes);
-app.use('/api/equipes', verificarToken, verificarAcessoAPIMiddleware('equipes'), equipesRoutes);
-app.use('/api/documentos', verificarToken, verificarAcessoAPIMiddleware('documentos'), documentosRoutes);
-app.use('/api/documentos-storage', verificarToken, verificarAcessoAPIMiddleware('documentos'), documentosStorageRoutes);
-app.use('/api/carteirinhas', verificarToken, verificarAcessoAPIMiddleware('carteirinhas'), carteirinhasRoutes);
-app.use('/api/exportacao', verificarToken, verificarAcessoAPIMiddleware('exportacao'), exportacaoRoutes);
+app.use('/api/atletas', verificarToken, atletasRoutes);
+app.use('/api/documentos', verificarToken, documentosRoutes);
+app.use('/api/documentos-storage', verificarToken, documentosStorageRoutes);
+app.use('/api/carteirinhas', verificarToken, carteirinhasRoutes);
+app.use('/api/exportacao', verificarToken, exportacaoRoutes);
 
 // =====================================================
 // ROTAS EXISTENTES (MANTER COMPATIBILIDADE)

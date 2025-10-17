@@ -1186,9 +1186,7 @@
                 // Carregar equipes
                 const equipesData = await apiRequest('/api/equipes');
                 if (equipesData && equipesData.success) {
-                    // Garantir que equipes seja um array
-                    equipes = Array.isArray(equipesData.data) ? equipesData.data : 
-                             Array.isArray(equipesData.data.equipes) ? equipesData.data.equipes : [];
+                    equipes = equipesData.data;
                     preencherSelectEquipes();
                 }
                 
@@ -1317,15 +1315,9 @@
             const filtroEquipe = document.getElementById('filtroEquipe');
             
             const options = ['<option value="">Selecione uma equipe...</option>'];
-            
-            // Verificar se equipes é um array
-            if (Array.isArray(equipes)) {
-                equipes.forEach(equipe => {
-                    options.push(`<option value="${equipe.id}">${equipe.nomeEquipe}</option>`);
-                });
-            } else {
-                console.warn('Equipes não é um array:', equipes);
-            }
+            equipes.forEach(equipe => {
+                options.push(`<option value="${equipe.id}">${equipe.nomeEquipe}</option>`);
+            });
             
             selectEquipe.innerHTML = options.join('');
             filtroEquipe.innerHTML = options.join('');
@@ -1452,7 +1444,7 @@
                     return;
                 }
 
-                const equipe = Array.isArray(equipes) ? equipes.find(e => e.id === atleta.idEquipe) : null;
+                const equipe = equipes.find(e => e.id === atleta.idEquipe);
                 if (!equipe) {
                     mostrarToast('Equipe do atleta não encontrada', 'error');
                     return;
